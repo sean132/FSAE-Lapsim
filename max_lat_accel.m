@@ -1,6 +1,7 @@
 function [x_ss,lat_accel,long_accel,lat_accel_guess] = max_lat_accel(long_vel_guess,car,x0)
 % uses fmincon to minimize the objective function subject to constraints
 % optimizes lateral acceleration with no longitudinal acceleration constraint
+% varies inputs to maximize lateral acceleration
 disp('max_lat_accel');
 if nargin == 2 % no initial guess supplied
     % initial guesses

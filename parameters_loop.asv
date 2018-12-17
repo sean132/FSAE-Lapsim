@@ -4,6 +4,11 @@ function [car_cell] = parameters_loop(cP,aP,eP,DTp,Bp,tP)
 %   for loops)
 % output car_cell: a cell containing a car for each possible combination of
 %   parameters
+aPArr = []; %array of all aero objects
+for i = 1:numel(aP)
+    iter = Aero(aP{1}.(i)
+
+
     [mass,driver_weight,accel_driver_weight,wheelbase,weight_dist,track_width,wheel_radius,cg_height,...
     roll_center_height_front,roll_center_height_rear,R_sf,I_zz,cda,cla,distribution,redline,shift_point,...
     final_drive,drivetrain_efficiency,G_d1,G_d2_overrun,G_d2_driving,brake_distribution,max_braking_torque,gamma,p_i]...
@@ -24,5 +29,5 @@ for i = 1:numel(mass)
         wheel_radius(i),cg_height(i),roll_center_height_front(i),roll_center_height_rear(i),R_sf(i),...
         I_zz(i),aero,powertrain,tire); 
     car_cell{i,1} = car;
-    car_cell{i,2} = accel_car;
+%     car_cell{i,2} = accel_car;
 end
