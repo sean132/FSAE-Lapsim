@@ -64,10 +64,10 @@ tireParams.Fy_parameters = cell2mat(Xbestcell);
 
 % cell array of gridded parameters
 [car_cell] = parameters_loop(carParams,aeroParams,eParams,DTparams,Bparams,tireParams);
-%%
+%
 % iterate through different parameter sets
 for i = 1:size(car_cell,1)
-    %% G-G Diagram Creation
+    % G-G Diagram Creation
     % create velocity-dependent g-g diagram
     close all;clc
     
@@ -75,7 +75,7 @@ for i = 1:size(car_cell,1)
     accel_car = car_cell{i,2};
     [vel_matrix_accel,vel_matrix_braking,x_table_ss,x_table_accel,x_table_braking] = ...
         g_g_diagram(car);
-    %% Plotting
+    % Plotting
     
     % set desired plots to 1
     plot1 = 1; % velocity-dependent g-g diagram scatter plot
@@ -91,7 +91,7 @@ for i = 1:size(car_cell,1)
 %     plot_choice = [plot1 plot2 plot3 plot4 plot5 plot6 plot7];
 %     plotter(vel_matrix_accel,vel_matrix_braking,car.max_vel,g_g_vel,plot_choice);
     
-    %% Events Calculation
+    % Events Calculation
     % creates struct comp including car and event time, points,
     %   accelerations, etc.
     % competitions is a cell including each comp calculated
@@ -114,7 +114,7 @@ for i = 1:size(car_cell,1)
     comp.total_points = comp.skidpad.points+comp.accel.points+comp.autocross.points+comp.endurance.points;
     competitions{i} = comp;
 end
-%% Plotting
+% Plotting
 
 close all
 

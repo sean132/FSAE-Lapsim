@@ -69,6 +69,7 @@ options = optimoptions('fmincon','MaxFunctionEvaluations',2000,'ConstraintTolera
 %   0 = function evaluations exceeded (not converging)
 %   -2 = no feasible point found 
 [x,fval,exitflag,output,lambda,grad,hessian] = fmincon(f,x0,A,b,Aeq,beq,lb,ub,constraint,options);
+x'
 x(9) = x(8);
 
 long_accel_guess = x;

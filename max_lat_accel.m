@@ -85,7 +85,7 @@ lat_accel_guess = x;
 % generate table of control variable values
 x_ss = [exitflag long_accel x(3)*x(5) x omega_1 omega_2 omega_3 omega_4 engine_rpm current_gear beta...
     Fz_1 Fz_2 Fz_3 Fz_4 alpha_1 alpha_2 alpha_3 alpha_4 T_1 T_2 T_3 T_4];
-[x_table_ss] = generate_table(x_ss);
+[x_table_ss] = generate_table(x_ss)
 
 % maximum lateral accel in g's
 lat_accel = x(3)*x(5)/9.81;

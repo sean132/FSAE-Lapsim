@@ -111,27 +111,24 @@ classdef Car
             alpha(4) = (lat_vel-obj.l_r*yaw_rate)/(long_vel-yaw_rate*obj.t_r/2)*180/pi;
          
             % Tire Forces
-            steer_angle = steer_angle_1*pi/180; % deg to rad
-            [Fx,Fy,Fxw] = obj.tireForce(steer_angle,alpha,kappa,Fz);
+            steer_angle_1 = steer_angle_1*pi/180; % deg to rad
+            steer_angle_2 = steer_angle_2*pi/180; % deg to rad
+            [F,Fxw] = obj.tireForce(steer_angle_1,alpha,kappa,Fz);
             
             % Equations of Motion
-            lat_accel = sum(Fy)*(1/obj.M)-yaw_rate*long_vel;
-            long_accel = (sum(Fx)-obj.aero.drag(long_vel))*(1/obj.M)+yaw_rate*lat_vel;
+            lat_accel = sum(F(:,2))*(1/obj.M)-yaw_rate*long_vel;
+            long_accel = (sum(F(:,1))-obj.aero.drag(long_vel))*(1/obj.M)+yaw_rate*lat_vel;
 %             yaw_accel = ((F_x1-F_x2)*obj.t_f/2+(F_x3-F_x4)*obj.t_r/2+(F_y1+F_y2)*obj.l_f-(F_y3+F_y4)*obj.l_r)*(1/obj.I_zz);
-            yaw_accel = ((Fx(1)-Fx(2))*obj.t_f/2+(Fx(3)-Fx(4))*obj.t_r/2+(Fy(1)+Fy(2))*obj.l_f-(Fy(3)+Fy(4))*obj.l_r)*(1/obj.I_zz);
+            yaw_accel = ((F(1,1)-F(2,1))*obj.t_f/2+(F(3,1)-F(4,1))*obj.t_r/2+(F(1,2)+F(2,2))*obj.l_f-(F(3,2)+F(4,2))*obj.l_r)*(1/obj.I_zz);
             
             % neglects wheel rotational dynamics: for justification see Koutrik p.16
             wheel_accel_1 = (T(1)-Fxw(1)*obj.R);
             wheel_accel_2 = (T(2)-Fxw(2)*obj.R);
             wheel_accel_3 = (T(3)-Fx(3)*obj.R);
-            wheel_accel_4 = (T(4)-Fx(4)*obj.R); 
+            wheel_accel_4 = (T(4)-Fx(44*obj.R); 
             
-            omega_1 = omega(1); omega_2 = omega(2); omega_3 = omega(3); omega_4 = omega(4);
-            Fz_1 = Fz(1); Fz_2 = Fz(2); Fz_3 = Fz(3); Fz_4 = Fz(4);
-            alpha_1 = alpha(1); alpha_2 = alpha(2);alpha_3 = alpha(3);alpha_4 = alpha(4);
-            T_1 = T(1);T_2 = T(2);T_3 = T(3);T_4 = T(4);
         end
-        function [Fx,Fy, F_xw] = tireForce(obj,steer_angle,alpha,kappa,Fz)
+        function [F, F_xw] = tireForce(obj,steer_angle,alpha,kappa,Fz)
             %radians
             
             % forces in tire frame of reference
@@ -151,8 +148,7 @@ classdef Car
             F_y3 = obj.tire.F_y(alpha(3),kappa(3),Fz(3));
             F_x4 = obj.tire.F_x(alpha(4),kappa(4),Fz(4));
             F_y4 = obj.tire.F_y(alpha(4),kappa(4),Fz(4));
-            Fx = [F_x1; F_x2; F_x3; F_x4];
-            Fy = [F_y1; F_y2; F_y3; F_y4];
+            F = [F_x1 F_y1; F_x2 F_y2; F_x3 F_y3; F_x4 F_y4];
         end
         function xdot = dynamics(obj,x)
 %             1: yaw angle
