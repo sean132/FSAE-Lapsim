@@ -69,15 +69,14 @@ constraint = @(P) car.constraint5(P,radius,scaling_factor);
 [x,fval,exitflag] = fmincon(f,x0,A,b,Aeq,beq,lb,ub,constraint,options);
 vel_corner_guess = x;
 
-[engine_rpm,beta,~,long_accel,~,~,~,~,~,...
-    omega_1,omega_2,omega_3,omega_4,current_gear,~,~,~,~,...
-    Fz_1,Fz_2,Fz_3,Fz_4,alpha_1,alpha_2,alpha_3,alpha_4,T_1,T_2,T_3,T_4] = car.equations(x,scaling_factor);
+[engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
+Fzvirtual,Fz,alpha,T] = car.equations(x,scaling_factor);
 
 % unscaling
 x = x.*scaling_factor;
 max_vel_corner = x(3);
 
-x_corner_vel = [exitflag long_accel x(3)*x(5) x omega_1 omega_2 omega_3 omega_4 engine_rpm current_gear beta...
-    Fz_1 Fz_2 Fz_3 Fz_4 alpha_1 alpha_2 alpha_3 alpha_4 T_1 T_2 T_3 T_4];
+x_corner_vel = [exitflag long_accel x(3)*x(5) x omega(1:4) engine_rpm current_gear beta...
+    Fz(1:4) alpha(1:4) T(1:4)];
 [x_table_corner_vel] = generate_table(x_corner_vel);
 

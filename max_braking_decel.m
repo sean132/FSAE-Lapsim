@@ -65,10 +65,10 @@ options = optimoptions('fmincon','MaxFunctionEvaluations',2000,'ConstraintTolera
 
 cond_hessian = cond(hessian)
 
-[engine_rpm,beta,lat_accel,long_accel,~,~,~,~,~,...
-    omega_1,omega_2,omega_3,omega_4,current_gear] = car.equations(x,scaling_factor);
+[engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
+Fzvirtual,Fz,alpha,T] = car.equations(x,scaling_factor);
 
-x_braking = [exitflag long_accel lat_accel x omega_1 omega_2 omega_3 omega_4 engine_rpm current_gear beta];
+x_braking = [exitflag long_accel lat_accel x omega(1:4) engine_rpm current_gear beta];
 
 x_cell_braking = num2cell(x_braking);
 x_table_braking = cell2table(x_cell_braking);
