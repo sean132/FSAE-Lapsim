@@ -28,7 +28,7 @@ carParams.I_zz = 83.28; %kg-m^2
 % aero parameters
 aeroParams = struct();
 aeroParams.cda = 0.787;
-aeroParams.cla = 2;
+aeroParams.cla = 2:3;
 aeroParams.distribution = 0.5; % proportion of downforce in front
 
 % engine parameters
