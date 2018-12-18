@@ -55,7 +55,7 @@ options = optimoptions('fmincon','MaxFunctionEvaluations',1000,'ConstraintTolera
 f = @(P) -P(3)*P(5);                                     
 
 % no longitudinal acceleration constraint
-constraint = @(P) car.constraint2(P,long_accel_value,scaling_factor);
+constraint = @(P) car.constraint2(P,long_accel_value);
 
 % fval: objective function value (v^2/r)
 % exitflag meaning: 1 = converged, 2 = change in x less than step tolerance
@@ -67,7 +67,7 @@ constraint = @(P) car.constraint2(P,long_accel_value,scaling_factor);
 cond_hessian = cond(hessian);
 
 [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
-Fzvirtual,Fz,alpha,T] = car.equations(x,scaling_factor);
+Fzvirtual,Fz,alpha,T] = car.equations(x);
 
 % unscaling
 x = x.*scaling_factor;

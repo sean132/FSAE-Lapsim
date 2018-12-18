@@ -44,12 +44,6 @@ lb = [steer_angle_bounds(1),throttle_bounds(1),long_vel_bounds(1),lat_vel_bounds
 ub = [steer_angle_bounds(2),throttle_bounds(2),long_vel_bounds(2),lat_vel_bounds(2),...
     yaw_rate_bounds(2),kappa_1_bounds(2),kappa_2_bounds(2),kappa_3_bounds(2),kappa_4_bounds(2)];
 
-% scaling
-scaling_factor = ones(1,9);
-x0 = x0./scaling_factor;
-lb = lb./scaling_factor;
-ub = ub./scaling_factor;
-
 % default algorithm is interior-point
 options = optimoptions('fmincon','MaxFunctionEvaluations',5000,'ConstraintTolerance',1e-2,...
     'StepTolerance',1e-10,'Display','notify-detailed');
@@ -58,7 +52,7 @@ options = optimoptions('fmincon','MaxFunctionEvaluations',5000,'ConstraintTolera
 f = @(P) -P(3)*P(5);                                     
 
 % no longitidunal acceleration constraint
-constraint = @(P) car.constraint5(P,radius,scaling_factor);
+constraint = @(P) car.constraint5(P,radius);
 
 % fval: objective function value (v^2/r)
 % exitflag meaning: 1 = converged, 2 = change in x less than step tolerance
@@ -73,8 +67,6 @@ vel_corner_guess = x;
     omega_1,omega_2,omega_3,omega_4,current_gear,~,...
     Fz,alpha,T] = car.equations(x,scaling_factor);
 
-% unscaling
-x = x.*scaling_factor;
 max_vel_corner = x(3);
 
 x_corner_vel = [exitflag long_accel x(3)*x(5) x omega(1:4) engine_rpm current_gear beta...

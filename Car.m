@@ -43,9 +43,7 @@ classdef Car
         end
         
         function [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
-                Fzvirtual,Fz,alpha,T] = equations(obj,P,scaling_factor)           
-            
-            P = P.*scaling_factor;
+                Fzvirtual,Fz,alpha,T] = equations(obj,P)           
             
             % inputs: vehicle parameters
             % outputs: vehicle accelerations and other properties
@@ -196,87 +194,87 @@ classdef Car
         % output ceq: constrains certain accelerations to 0 to satisfy
         %   steady-state conditions
         
-        function [c,ceq] = constraint1(obj,P,scaling_factor)            
+        function [c,ceq] = constraint1(obj,P)            
             % no longitudinal acceleration constraint
             % used for optimizing longitudinal acceleration/braking           
             P(9) = P(8);
             
             [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
                 Fzvirtual,Fz,alpha,T]...
-                = obj.equations(P,scaling_factor);
+                = obj.equations(P);
             c = [engine_rpm-13000,abs(beta)-20,-Fzvirtual(1:4)];
             ceq = [lat_accel,yaw_accel,wheel_accel(1:4)];
         end
         
-        function [c,ceq] = constraint2(obj,P,long_accel_value,scaling_factor)
+        function [c,ceq] = constraint2(obj,P,long_accel_value)
             % longitudinal acceleration constrained to equal long_accel_value
             % used for optimizing lateral force for given longitudinal acceleration
             
             [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
                 Fzvirtual,Fz,alpha,T]...
-                = obj.equations(P,scaling_factor);
+                = obj.equations(P);
             c = [engine_rpm-13000,abs(beta)-20,-Fzvirtual(1:4)];
             ceq = [lat_accel,long_accel-long_accel_value,yaw_accel,wheel_accel(1:4)];
         end
         
-        function [c,ceq] = constraint3(obj,P,radius,scaling_factor)
+        function [c,ceq] = constraint3(obj,P,radius)
             % longitudinal acceleration constrained to equal zero
             % velocity divided by yaw rate constrained to equal inputted radius
             % used for solving skidpad (optimizing velocity for zero longitudinal acceleration
             
             [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
                 Fzvirtual,Fz,alpha,T]...
-                = obj.equations(P,scaling_factor);
+                = obj.equations(P);
             c = [engine_rpm-13000,abs(beta)-20,-Fzvirtual(1:4)];
             ceq = [P(3)/(P(5))-radius,lat_accel,long_accel,yaw_accel,wheel_accel(1:4)];
         end
         
-        function [c,ceq] = constraint4(obj,P,lat_accel_value,scaling_factor) 
+        function [c,ceq] = constraint4(obj,P,lat_accel_value) 
             % lateral acceleration constrained to equal lat_accel_value
             % used for optimizing longitudinal acceleration for given lateral acceleration
             
             [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
                 Fzvirtual,Fz,alpha,T]...
-                = obj.equations(P,scaling_factor);
+                = obj.equations(P);
             c = [engine_rpm-13000,abs(beta)-20,-Fzvirtual(1:4)];
             ceq = [P(3)*P(5)-lat_accel_value,lat_accel,yaw_accel,wheel_accel(1:4)];
         end
         
-        function [c,ceq] = constraint5(obj,P,radius,scaling_factor)  
+        function [c,ceq] = constraint5(obj,P,radius)  
             % velocity divided by yaw rate constrained to equal inputted radius
             % used for calculating max velocity the car can corner at for given radius
             
             [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
                 Fzvirtual,Fz,alpha,T]...
-                = obj.equations(P,scaling_factor);
+                = obj.equations(P);
             c = [engine_rpm-13000,abs(beta)-20,-Fzvirtual(1:4)];
             ceq = [P(3)/(P(5))-radius,lat_accel,yaw_accel,wheel_accel(1:4)];
         end
         
-        function [c,ceq] = constraint6(obj,P,scaling_factor)            
+        function [c,ceq] = constraint6(obj,P)            
             % no longitudinal acceleration constraint
             % used for optimizing lateral acceleration            
             
            [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
                 Fzvirtual,Fz,alpha,T]...
-                = obj.equations(P,scaling_factor);
+                = obj.equations(P);
             c = [engine_rpm-13000,abs(beta)-20,-Fzvirtual(1:4)];
             ceq = [lat_accel,yaw_accel,wheel_accel(1:4)];
         end
         
-        function [c,ceq] = constraint7(obj,P,scaling_factor)
+        function [c,ceq] = constraint7(obj,P)
             % longitudinal acceleration constrained to 0
             % no yaw accel constraint
             % used to determine terminal under/oversteer            
             
             [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
                 Fzvirtual,Fz,alpha,T]...
-                = obj.equations(P,scaling_factor);
+                = obj.equations(P);
             c = [engine_rpm-13000,abs(beta)-20,-Fzvirtual(1:4)];
             ceq = [lat_accel,long_accel,wheel_accel(1:4)];
         end
         
-        function [c,ceq] = constraint8(obj,P,radius,long_vel_value,scaling_factor)  
+        function [c,ceq] = constraint8(obj,P,radius,long_vel_value)  
             % velocity divided by yaw rate constrained to equal inputted radius
             % velocity constrained to equal long_vel_value
             % longitudinal acceleration constrained to 0
@@ -284,20 +282,20 @@ classdef Car
                         
            [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
                 Fzvirtual,Fz,alpha,T]...
-                = obj.equations(P,scaling_factor);
+                = obj.equations(P);
             c = [engine_rpm-13000,abs(beta)-20,-Fzvirtual(1:4)];
             ceq = [P(3)/(P(5))-radius,P(3)-long_vel_value,lat_accel,...
                 long_accel, yaw_accel,wheel_accel(1:4)];
         end
         
         % objective function
-        function out = long_accel(obj,P,scaling_factor)
+        function out = long_accel(obj,P)
             % used for optimizing longitudinal acceleration            
             P(9) = P(8);
             
             [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
                 Fzvirtual,Fz,alpha,T]...
-                = obj.equations(P,scaling_factor);
+                = obj.equations(P);
             out = long_accel;
         end
         

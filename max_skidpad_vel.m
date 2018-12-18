@@ -41,17 +41,11 @@ lb = [steer_angle_bounds(1),throttle_bounds(1),long_vel_bounds(1),lat_vel_bounds
 ub = [steer_angle_bounds(2),throttle_bounds(2),long_vel_bounds(2),lat_vel_bounds(2),...
     yaw_rate_bounds(2),kappa_1_bounds(2),kappa_2_bounds(2),kappa_3_bounds(2),kappa_4_bounds(2)];
 
-% scaling
-scaling_factor = ones(1,9);
-x0 = x0./scaling_factor;
-lb = lb./scaling_factor;
-ub = ub./scaling_factor;
-
 % objective function: longitudinal velocity times yaw rate (v*v/r = v^2/r)
 f = @(P) -P(3)*P(5);                                     
 
 % longitudinal acceleration constrained to zero
-constraint = @(P) car.constraint3(P,radius,scaling_factor);
+constraint = @(P) car.constraint3(P,radius);
 
 % default algorithm is interior-point
 options = optimoptions('fmincon','MaxFunctionEvaluations',5000,'ConstraintTolerance',1e-2,...
@@ -59,8 +53,6 @@ options = optimoptions('fmincon','MaxFunctionEvaluations',5000,'ConstraintTolera
 
 [x,fval,exitflag] = fmincon(f,x0,A,b,Aeq,beq,lb,ub,constraint,options);
 
-% unscaling
-x = x.*scaling_factor;
 max_vel_skid = x(3);
 skid_guess = x;
 

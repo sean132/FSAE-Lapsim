@@ -51,16 +51,12 @@ ub = [steer_angle_bounds(2),throttle_bounds(2),long_vel_bounds(2),lat_vel_bounds
 
 % scaling
 %scaling_factor = [20 1 10 1 1 0.01 0.01 0.01 0.01];
-scaling_factor = ones(1,9);
-x0 = x0./scaling_factor;
-lb = lb./scaling_factor;
-ub = ub./scaling_factor;
 
 % objective function: longitudinal acceleration (forwards)
-f = @(P) -car.long_accel(P,scaling_factor);
+f = @(P) -car.long_accel(P);
 
 % constrained to lateral acceleration value
-constraint = @(P) car.constraint4(P,lat_accel_value,scaling_factor);
+constraint = @(P) car.constraint4(P,lat_accel_value);
 
 % default algorithm is interior-point
 
@@ -73,7 +69,7 @@ options = setOptimoptions();
 [x,fval,exitflag] = fmincon(f,x0,A,b,Aeq,beq,lb,ub,constraint,options);
 
 [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
-Fzvirtual,Fz,alpha,T] = car.equations(x,scaling_factor);
+Fzvirtual,Fz,alpha,T] = car.equations(x);
 
 long_accel_guess = x;
 
