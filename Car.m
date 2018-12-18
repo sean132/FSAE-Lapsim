@@ -228,7 +228,7 @@ classdef Car
                 Fzvirtual,Fz,alpha,T]...
                 = obj.equations(P,scaling_factor);
             c = [engine_rpm-13000,abs(beta)-20,-Fzvirtual(1:4)];
-            ceq = [P(3)*scaling_factor(3)/(P(5)*scaling_factor(5))-radius,lat_accel,long_accel,yaw_accel,wheel_accel(1:4)];
+            ceq = [P(3)/(P(5))-radius,lat_accel,long_accel,yaw_accel,wheel_accel(1:4)];
         end
         
         function [c,ceq] = constraint4(obj,P,lat_accel_value,scaling_factor) 
@@ -239,7 +239,7 @@ classdef Car
                 Fzvirtual,Fz,alpha,T]...
                 = obj.equations(P,scaling_factor);
             c = [engine_rpm-13000,abs(beta)-20,-Fzvirtual(1:4)];
-            ceq = [P(3)*scaling_factor(3)*P(5)*scaling_factor(5)-lat_accel_value,lat_accel,yaw_accel,wheel_accel(1:4)];
+            ceq = [P(3)*P(5)-lat_accel_value,lat_accel,yaw_accel,wheel_accel(1:4)];
         end
         
         function [c,ceq] = constraint5(obj,P,radius,scaling_factor)  
@@ -250,7 +250,7 @@ classdef Car
                 Fzvirtual,Fz,alpha,T]...
                 = obj.equations(P,scaling_factor);
             c = [engine_rpm-13000,abs(beta)-20,-Fzvirtual(1:4)];
-            ceq = [P(3)*scaling_factor(3)/(P(5)*scaling_factor(5))-radius,lat_accel,yaw_accel,wheel_accel(1:4)];
+            ceq = [P(3)/(P(5))-radius,lat_accel,yaw_accel,wheel_accel(1:4)];
         end
         
         function [c,ceq] = constraint6(obj,P,scaling_factor)            
@@ -286,7 +286,7 @@ classdef Car
                 Fzvirtual,Fz,alpha,T]...
                 = obj.equations(P,scaling_factor);
             c = [engine_rpm-13000,abs(beta)-20,-Fzvirtual(1:4)];
-            ceq = [P(3)*scaling_factor(3)/(P(5)*scaling_factor(5))-radius,P(3)-long_vel_value,lat_accel,...
+            ceq = [P(3)/(P(5))-radius,P(3)-long_vel_value,lat_accel,...
                 long_accel, yaw_accel,wheel_accel(1:4)];
         end
         

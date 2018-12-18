@@ -9,7 +9,7 @@ clearvars;clc;
 % differential/spool improvement
 % caster jacking effect
 % kinematic camber effect
-
+tic
 % general parameters (all in metric: kg, m, etc.)
 carParams = struct();
 carParams.mass = 177; %170.097; % not including driver
@@ -28,7 +28,7 @@ carParams.I_zz = 83.28; %kg-m^2
 % aero parameters
 aeroParams = struct();
 aeroParams.cda = 0.787;
-aeroParams.cla = 2:3;
+aeroParams.cla = 3;
 aeroParams.distribution = 0.5; % proportion of downforce in front
 
 % engine parameters
@@ -88,9 +88,10 @@ for i = 1:size(car_cell,1)
     
     g_g_vel = 10; % can input vector to overlay different velocities
     
-%     plot_choice = [plot1 plot2 plot3 plot4 plot5 plot6 plot7];
-%     plotter(vel_matrix_accel,vel_matrix_braking,car.max_vel,g_g_vel,plot_choice);
-    
+    plot_choice = [plot1 plot2 plot3 plot4 plot5 plot6 plot7];
+    plotter(vel_matrix_accel,vel_matrix_braking,car.max_vel,g_g_vel,plot_choice);
+    view([1 1 1]);
+    pause
     % Events Calculation
     % creates struct comp including car and event time, points,
     %   accelerations, etc.
@@ -114,6 +115,7 @@ for i = 1:size(car_cell,1)
     comp.total_points = comp.skidpad.points+comp.accel.points+comp.autocross.points+comp.endurance.points;
     competitions{i} = comp;
 end
+toc
 % Plotting
 
 close all

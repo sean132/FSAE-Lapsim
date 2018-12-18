@@ -1,7 +1,7 @@
 function [x_accel,long_accel,long_accel_guess] = max_long_accel_cornering(long_vel_guess,lat_accel_value,car,x0)
 % uses fmincon to minimize the objective function subject to constraints
 % optimizes longitudinal acceleration with given lateral acceleration constraint
-disp('max_long_accel_corner');
+% disp('max_long_accel_corner');
 if nargin == 3 % no initial guess supplied
     % initial guesses
     steer_angle_guess = 1;
@@ -14,8 +14,15 @@ if nargin == 3 % no initial guess supplied
     kappa_3_guess = 0.01;
     kappa_4_guess = 0.01;
     
-    x0 = [steer_angle_guess,throttle_guess,long_vel_guess,lat_vel_guess,yaw_rate_guess,kappa_1_guess,...
-        kappa_2_guess,kappa_3_guess,kappa_4_guess];
+    x0 = [steer_angle_guess;
+        throttle_guess;
+        long_vel_guess;
+        lat_vel_guess;
+        yaw_rate_guess;
+        kappa_1_guess;
+        kappa_2_guess;
+        kappa_3_guess;
+        kappa_4_guess]';
 end
 
 x0(3) = long_vel_guess;
@@ -56,23 +63,17 @@ f = @(P) -car.long_accel(P,scaling_factor);
 constraint = @(P) car.constraint4(P,lat_accel_value,scaling_factor);
 
 % default algorithm is interior-point
-options = optimoptions('fmincon','MaxFunctionEvaluations',1000,'ConstraintTolerance',1e-2,...
-    'StepTolerance',1e-10,'Display','notify-detailed');
 
+options = setOptimoptions();
 % fval: objective function value (v^2/r)
 % exitflag meaning: 1 = converged, 2 = change in x less than step tolerance
 %   (optimality condition not fulfilled, but solution still found
 %   0 = function evaluations exceeded (not converging)
 %   -2 = no feasible point found 
-[x,fval,exitflag,output,lambda,grad,hessian] = fmincon(f,x0,A,b,Aeq,beq,lb,ub,constraint,options);
-
-cond_hessian = cond(hessian);
+[x,fval,exitflag] = fmincon(f,x0,A,b,Aeq,beq,lb,ub,constraint,options);
 
 [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
 Fzvirtual,Fz,alpha,T] = car.equations(x,scaling_factor);
-
-% unscaling
-x = x.*scaling_factor;
 
 long_accel_guess = x;
 

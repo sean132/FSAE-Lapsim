@@ -1,0 +1,3 @@
+function opts = setOptimoptions()
+opts = optimoptions('fmincon','MaxFunctionEvaluations',1000,'ConstraintTolerance',1e-2,...
+    'StepTolerance',1e-10,'Display','notify-detailed');

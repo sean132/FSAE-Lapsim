@@ -69,8 +69,9 @@ constraint = @(P) car.constraint5(P,radius,scaling_factor);
 [x,fval,exitflag] = fmincon(f,x0,A,b,Aeq,beq,lb,ub,constraint,options);
 vel_corner_guess = x;
 
-[engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
-Fzvirtual,Fz,alpha,T] = car.equations(x,scaling_factor);
+[engine_rpm,beta,~,long_accel,~,~,~,~,~,...
+    omega_1,omega_2,omega_3,omega_4,current_gear,~,...
+    Fz,alpha,T] = car.equations(x,scaling_factor);
 
 % unscaling
 x = x.*scaling_factor;

@@ -1,6 +1,6 @@
 classdef Aero
-    %UNTITLED10 Summary of this class goes here
-    %   Detailed explanation goes here
+    % aero forces
+    % update to return aero forces on front axle, rear axle
     
     properties
         cda

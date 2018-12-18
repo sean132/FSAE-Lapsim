@@ -7,8 +7,7 @@ function [vel_matrix_accel,vel_matrix_braking,x_table_ss,x_table_accel,x_table_b
 % outputs vel_matrix_accel,vel_matrix_braking: used for interpolation in
 %   Events 
 
-% vel_guesses = linspace(5,car.max_vel-0.5,25);
-vel_guesses = linspace(5,car.max_vel-0.5,2);
+vel_guesses = linspace(5,car.max_vel-0.5,25);
 vel_matrix_accel = [];
 vel_matrix_braking = [];
 x_matrix_ss = [];
@@ -18,24 +17,19 @@ vel_counter = 1;
 % sweeps through different velocities
 for long_vel_guess = vel_guesses
     %% Max Lat Accel    
-    
     if vel_counter == 1
         [x_ss,lat_accel,lat_long_accel,lat_accel_guess] = max_lat_accel(long_vel_guess,car);
     else
         x0 = lat_accel_guess;
         [x_ss,lat_accel,lat_long_accel,lat_accel_guess] = max_lat_accel(long_vel_guess,car,x0);
     end        
-    
     x_matrix_ss = [x_matrix_ss; x_ss];
-    
     max_lat_accel_matrix(vel_counter) = lat_accel;
-        
     counter = 1;
     x_matrix_accel = [];
     x_matrix_braking = [];
 
-%     lat_accel_matrix = linspace(0.1,lat_accel-0.1,30);
-    lat_accel_matrix = linspace(0.1,lat_accel-0.1,2);
+    lat_accel_matrix = linspace(0.1,lat_accel-0.1,30);
 
     % sweeps through different lateral accelerations (0 to maximum)
     for i = lat_accel_matrix
@@ -54,8 +48,6 @@ for long_vel_guess = vel_guesses
         x_matrix_accel = [x_matrix_accel; x_accel];
         long_vel_matrix(counter) = long_vel_guess;
         long_accel_matrix(counter) = long_accel;
-        
-        
         %% Max Braking
         lat_accel_value = i*9.81;
         
