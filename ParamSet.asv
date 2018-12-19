@@ -1,0 +1,42 @@
+classdef ParamSet
+    properties
+        exitflag
+        longAccel
+        latAccel
+        steerAngle
+        throttle
+        longVel
+        latVel
+        yaw_rate
+        kappa
+        omega
+        rpm
+        gear
+        beta
+        Fz
+        alpha
+        T
+        car
+        maxLatLongVelo
+        maxLat
+    end
+    methods
+        function obj = ParamSet(inputCar)
+            obj.car = inputCar;
+        end
+        function obj = setMaxLatAccelParams(obj,vLong,x_ss,latAccel,longAccel)
+            %long velocity calculated at
+%             obj.maxLatAccelParams.longVelocity = vLong;
+%             %steady state state vector
+%             obj.maxLatAccelParams.x_ss = x_ss;
+%             %accelerations
+%             obj.maxLatAccelParams.latAccel = latAccel;
+%             obj.maxLatAccelParams.longAccel = longAccel;
+            test = struct();
+            test.a = 4;
+            obj.maxLatAccelParams = test;
+            obj.alpha = 4;
+        end
+    end
+end
+    

@@ -54,7 +54,6 @@ classdef Car
             long_vel = P(3); % m/s
             lat_vel = P(4); % m/s
             yaw_rate = P(5); % equal to long_vel/radius (v/r)            
-            kappa = zeros(1,4);
             kappa = P(6:9);
             % note: 1 = front left tire, 2 = front right tire
             %       3 = rear left tire, 4 = rear right tire

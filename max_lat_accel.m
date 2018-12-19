@@ -69,8 +69,6 @@ constraint = @(P) car.constraint1(P);
 %   -2 = no feasible point found 
 [x,fval,exitflag,output,lambda,grad,hessian] = fmincon(f,x0,A,b,Aeq,beq,lb,ub,constraint,options);
 
-cond_hessian = cond(hessian);
-
 [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
 Fzvirtual,Fz,alpha,T] = car.equations(x);  
 

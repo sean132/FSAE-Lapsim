@@ -65,7 +65,7 @@ vel_corner_guess = x;
 
 [engine_rpm,beta,~,long_accel,~,~,~,~,~,...
     omega_1,omega_2,omega_3,omega_4,current_gear,~,...
-    Fz,alpha,T] = car.equations(x,scaling_factor);
+    Fz,alpha,T] = car.equations(x);
 
 max_vel_corner = x(3);
 
