@@ -9,6 +9,8 @@ parfor c1 = 1:numel(longVelArr)
     longVel = longVelArr(c1);
     [xss,maxLatLatAccel,maxLatLongAccel,maxLatx0] = max_lat_accel(longVel,car);
     latAccelArr = linspace(.1,maxLatLatAccel-.1,latAgrid);
+    row = ParamSet();
+    row(numel(latAccelArr)) = ParamSet();
     for  c2 = 1:numel(latAccelArr)
         latAccelg = latAccelArr(c2);
         latAccel = latAccelg*9.81;
@@ -21,5 +23,7 @@ parfor c1 = 1:numel(longVelArr)
         carParams = ParamSet(car); 
         carParams.exitflag = c1;
         carParams.longAccel = c2;
+        row(c2) = carParams;
     end
+    paramArr(c1,:) = row;
 end

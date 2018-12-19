@@ -48,8 +48,10 @@ f = @(P) car.long_accel(P);
 constraint = @(P) car.constraint4(P,lat_accel_value);
 
 % default algorithm is interior-point
+% options = optimoptions('fmincon','MaxFunctionEvaluations',1000,'ConstraintTolerance',1e-2,...
+%     'StepTolerance',1e-10,'Display','notify-detailed');
 options = optimoptions('fmincon','MaxFunctionEvaluations',1000,'ConstraintTolerance',1e-2,...
-    'StepTolerance',1e-10,'Display','notify-detailed');
+    'StepTolerance',1e-10,'Display','off');
 
 % fval: objective function value (v^2/r)
 % exitflag meaning: 1 = converged, 2 = change in x less than step tolerance

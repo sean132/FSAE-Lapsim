@@ -6,8 +6,9 @@ function [vel_matrix_accel,vel_matrix_braking,x_table_ss,x_table_accel,x_table_b
 % input car: Car object
 % outputs vel_matrix_accel,vel_matrix_braking: used for interpolation in
 %   Events 
-
-vel_guesses = linspace(5,car.max_vel-0.5,25);
+longVgrid = 25;
+latAgrid = 30;
+vel_guesses = linspace(5,car.max_vel-0.5,longVgrid);
 vel_matrix_accel = [];
 vel_matrix_braking = [];
 x_matrix_ss = [];
@@ -29,21 +30,21 @@ for long_vel_guess = vel_guesses
     x_matrix_accel = [];
     x_matrix_braking = [];
 
-    lat_accel_matrix = linspace(0.1,lat_accel-0.1,30);
+    lat_accel_matrix = linspace(0.1,lat_accel-0.1,latAgrid);
 
     % sweeps through different lateral accelerations (0 to maximum)
     for i = lat_accel_matrix
         %% Max longitudinal acceleration at given lateral acceleration
         lat_accel_value = i*9.81; % g's to m/s^2
         
-        if counter == 1
+%         if counter == 1
             [x_accel,long_accel,long_accel_guess] = max_long_accel_cornering(long_vel_guess,...
                 lat_accel_value,car);
-        else
-            x0 = long_accel_guess;
-            [x_accel,long_accel,long_accel_guess] = max_long_accel_cornering(long_vel_guess,...
-                lat_accel_value,car);
-        end
+%         else
+%             x0 = long_accel_guess;
+%             [x_accel,long_accel,long_accel_guess] = max_long_accel_cornering(long_vel_guess,...
+%                 lat_accel_value,car);
+%         end
                    
         x_matrix_accel = [x_matrix_accel; x_accel];
         long_vel_matrix(counter) = long_vel_guess;
@@ -51,15 +52,17 @@ for long_vel_guess = vel_guesses
         %% Max Braking
         lat_accel_value = i*9.81;
         
-        if counter == 1
+%         if counter == 1
             [x_braking,long_decel,braking_decel_guess] = max_braking_decel_cornering(long_vel_guess,...
                 lat_accel_value,car);
-        else
-            x0 = braking_decel_guess;
-            [x_braking,long_decel,braking_decel_guess] = max_braking_decel_cornering(long_vel_guess,...
-                lat_accel_value,car);
-        end
-        
+%             fprintf("%0.2f %0.2f %0.2f\n",[long_decel long_vel_guess lat_accel_value]); 
+%         else
+%             x0 = braking_decel_guess;
+%             [x_braking,long_decel,braking_decel_guess] = max_braking_decel_cornering(long_vel_guess,...
+%                 lat_accel_value,car);
+%         end
+%         fprintf("%0.2f %0.2f %0.2f\n",[long_vel_guess lat_accel long_accel]);
+%         fprintf("%0.2f %0.2f %0.2f\n",[long_vel_guess lat_accel long_decel]);
         x_matrix_braking = [x_matrix_braking; x_braking];
         long_vel_matrix(counter) = long_vel_guess;
         braking_matrix(counter) = long_decel;

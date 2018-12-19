@@ -1,7 +1,7 @@
 numIter = 3;
 tic
 for i = 1:numIter
-   gg2(car);
+   gg2(car); %out of date, gg2 is parallel now
 end
 t1 = toc;
 tic
