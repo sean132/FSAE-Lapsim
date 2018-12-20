@@ -75,6 +75,7 @@ for i = 1:size(car_cell,1)
     accel_car = car_cell{i,2};
     [vel_matrix_accel,vel_matrix_braking,x_table_ss,x_table_accel,x_table_braking] = ...
         g_g_diagram(car);
+    
     % Plotting
     
     % set desired plots to 1
@@ -91,7 +92,6 @@ for i = 1:size(car_cell,1)
     plot_choice = [plot1 plot2 plot3 plot4 plot5 plot6 plot7];
     plotter(vel_matrix_accel,vel_matrix_braking,car.max_vel,g_g_vel,plot_choice);
     view([1 1 1]);
-    pause
     % Events Calculation
     % creates struct comp including car and event time, points,
     %   accelerations, etc.

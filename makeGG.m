@@ -1,4 +1,4 @@
-function points = makeGG(paramArr)
+function points = makeGG(paramArr,car)
 points = [];
 arr = reshape(paramArr,[numel(paramArr) 1]);
 for i = 1:numel(arr)
@@ -15,12 +15,13 @@ for i = 1:numel(arr)
     end
     points = [points; p1; p2; p3; p4];
 end
+car.ggPoints = points;
 
-gg = Polyhedron('V',points);
-gg.minVRep();
-figure(123);clf;
-% scatter3(points(:,1),points(:,2),points(:,3),'+')
-gg.plot()
-xlabel('Long');
-ylabel('Lat');
-zlabel('Velocity');
+% gg = Polyhedron('V',points);
+% gg.minVRep();
+% figure(123);clf;
+% % scatter3(points(:,1),points(:,2),points(:,3),'+')
+% gg.plot()
+% xlabel('Long');
+% ylabel('Lat');
+% zlabel('Velocity');

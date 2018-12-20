@@ -18,7 +18,9 @@ classdef Car
         I_zz
         aero
         powertrain
-        tire        
+        tire
+        
+        ggPoints %g-g diagram points for car instance
     end
     
     methods
@@ -109,7 +111,6 @@ classdef Car
             % Equations of Motion
             lat_accel = sum(Fy)*(1/obj.M)-yaw_rate*long_vel;
             long_accel = (sum(Fx)-obj.aero.drag(long_vel))*(1/obj.M)+yaw_rate*lat_vel;
-%             yaw_accel = ((F_x1-F_x2)*obj.t_f/2+(F_x3-F_x4)*obj.t_r/2+(F_y1+F_y2)*obj.l_f-(F_y3+F_y4)*obj.l_r)*(1/obj.I_zz);
             yaw_accel = ((Fx(1)-Fx(2))*obj.t_f/2+(Fx(3)-Fx(4))*obj.t_r/2+(Fy(1)+Fy(2))*obj.l_f-(Fy(3)+Fy(4))*obj.l_r)*(1/obj.I_zz);
             
             % neglects wheel rotational dynamics: for justification see Koutrik p.16
@@ -117,11 +118,6 @@ classdef Car
             wheel_accel(2) = (T(2)-Fxw(2)*obj.R);
             wheel_accel(3) = (T(3)-Fx(3)*obj.R);
             wheel_accel(4) = (T(4)-Fx(4)*obj.R); 
-            
-%             omega_1 = omega(1); omega_2 = omega(2); omega_3 = omega(3); omega_4 = omega(4);
-%             Fz_1 = Fz(1); Fz_2 = Fz(2); Fz_3 = Fz(3); Fz_4 = Fz(4);
-%             alpha_1 = alpha(1); alpha_2 = alpha(2);alpha_3 = alpha(3);alpha_4 = alpha(4);
-%             T_1 = T(1);T_2 = T(2);T_3 = T(3);T_4 = T(4);
         end
         function [Fx,Fy, F_xw] = tireForce(obj,steer_angle,alpha,kappa,Fz)
             %radians
@@ -164,6 +160,8 @@ classdef Car
 %             lf: cg to front, lr: cg to rear
 %             u(1): steering input
 
+              
+
 %             xdot(1) = x(2);
 %             xdot(2) = ((Fx1-Fx2)*(obj.t_f/2) + (Fx3-Fx4)*(obj.t_r/2) + (Fy1+Fy2)*obj.l_f - (Fy3+Fy4)*obj.l_r)/obj.I_zz;
 %             xdot(3) = (Fx1+Fx2+Fx3+Fx4-Fax)/obj.M + x(2)*x(4);
@@ -199,8 +197,7 @@ classdef Car
             P(9) = P(8);
             
             [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
-                Fzvirtual,Fz,alpha,T]...
-                = obj.equations(P);
+                Fzvirtual,Fz,alpha,T] = obj.equations(P);
             c = [engine_rpm-13000,abs(beta)-20,-Fzvirtual(1:4)];
             ceq = [lat_accel,yaw_accel,wheel_accel(1:4)];
         end
@@ -222,8 +219,7 @@ classdef Car
             % used for solving skidpad (optimizing velocity for zero longitudinal acceleration
             
             [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
-                Fzvirtual,Fz,alpha,T]...
-                = obj.equations(P);
+                Fzvirtual,Fz,alpha,T] = obj.equations(P);
             c = [engine_rpm-13000,abs(beta)-20,-Fzvirtual(1:4)];
             ceq = [P(3)/(P(5))-radius,lat_accel,long_accel,yaw_accel,wheel_accel(1:4)];
         end
@@ -235,7 +231,7 @@ classdef Car
             [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
                 Fzvirtual,Fz,alpha,T]...
                 = obj.equations(P);
-            c = [engine_rpm-13000,abs(beta)-20,-Fzvirtual(1:4)];
+            c = [engine_rpm-13000,abs(beta)-20,-Fzvirtual(1:2)];
             ceq = [P(3)*P(5)-lat_accel_value,lat_accel,yaw_accel,wheel_accel(1:4)];
         end
         
