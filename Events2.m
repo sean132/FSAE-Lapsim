@@ -44,6 +44,7 @@ classdef Events2 < handle
             % sweep for max velocity for given radius
             % used for interpolation in Autocross
             [x_table_corner_vel,radius_vector,max_vel_corner_vector] = vel_cornering_sweep(obj.car);
+            
             obj.x_table_corner_vel = x_table_corner_vel;
             obj.radius_vector = radius_vector;
             obj.max_vel_corner_vector = max_vel_corner_vector;
@@ -117,8 +118,8 @@ classdef Events2 < handle
             
             
             % F_accel/braking(lat_accel,long_vel) returns the max possible accel/braking
-            [F_accel,F_braking] = create_scattered_interpolants(obj.car.longAccelLookup',...
-                obj.car.longDecelLookup');
+            [F_accel,F_braking] = create_scattered_interpolants2(obj.car.longAccelLookup,...
+                obj.car.longDecelLookup);
 
             % Maximum possible acceleration between apexes
             % calculating velocity and acceleration profiles as well as time
@@ -290,7 +291,10 @@ classdef Events2 < handle
             points.autocross = autocross_points;
             points.endurance = endurance_points;
             obj.points = points;
-            obj.totalPoints = sum(skidpad_points,accel_points,autocross_points,endurance_points);
+            obj.totalPoints = sum([skidpad_points; 
+                                   accel_points;
+                                   autocross_points;
+                                   endurance_points]);
         end
     end
 end
