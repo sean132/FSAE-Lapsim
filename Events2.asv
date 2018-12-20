@@ -18,7 +18,6 @@ classdef Events2 < handle
         autoXTime
         
         points
-        totalPoints
         % used for interpolation in Autocross
         x_table_corner_vel
         radius_vector
@@ -290,7 +289,7 @@ classdef Events2 < handle
             points.autocross = autocross_points;
             points.endurance = endurance_points;
             obj.points = points;
-            obj.totalPoints = sum(skidpad_points,accel_points,autocross_points,endurance_points);
+            obj.totalPoints = sum(skidpad_points,accel_points,auto
         end
     end
 end

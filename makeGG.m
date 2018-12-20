@@ -1,5 +1,7 @@
-function points = makeGG(paramArr,car)
-points = [];
+function car = makeGG(paramArr,car)
+ggpoints = [];
+longAccelLookup = []; %maxLongAccel = f(latAccel,velocity)
+longDecelLookup = []; %maxLongDecel = f(latAccel,velocity)
 arr = reshape(paramArr,[numel(paramArr) 1]);
 for i = 1:numel(arr)
     pSet = arr(i);
@@ -13,15 +15,18 @@ for i = 1:numel(arr)
         p3 = [pSet.maxBrakeLongDecel pSet.maxBrakeLatAccel pSet.longVel];
         p4 = [pSet.maxBrakeLongDecel -pSet.maxBrakeLatAccel pSet.longVel];
     end
-    points = [points; p1; p2; p3; p4];
+    ggpoints = [ggpoints; p1; p2; p3; p4];
+    longAccelLookup = [longAccelLookup; p1];
+    longDecelLookup = [longDecelLookup; p2];
 end
-car.ggPoints = points;
-
-% gg = Polyhedron('V',points);
-% gg.minVRep();
-% figure(123);clf;
-% % scatter3(points(:,1),points(:,2),points(:,3),'+')
+car.ggPoints = ggpoints;
+car.longAccelLookup = longAccelLookup;
+car.longDecelLookup = longDecelLookup;
+gg = Polyhedron('V',ggpoints);
+gg.minVRep();
+figure(123);clf;
+scatter3(ggpoints(:,1),ggpoints(:,2),ggpoints(:,3),'+')
 % gg.plot()
-% xlabel('Long');
-% ylabel('Lat');
-% zlabel('Velocity');
+xlabel('Long');
+ylabel('Lat');
+zlabel('Velocity');

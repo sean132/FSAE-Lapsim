@@ -25,7 +25,8 @@ car = testCar();
 tic
 paramArr = gg2(car);
 toc
-points = makeGG(paramArr);
+%%
+points = makeGG(paramArr,car);
 %%
 clear
 car = testCar();

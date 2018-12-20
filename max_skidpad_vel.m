@@ -57,7 +57,7 @@ max_vel_skid = x(3);
 skid_guess = x;
 
 [engine_rpm,beta,lat_accel,long_accel,yaw_accel,wheel_accel,omega,current_gear,...
-Fzvirtual,Fz,alpha,T] = car.equations(x,scaling_factor);
+Fzvirtual,Fz,alpha,T] = car.equations(x);
 
 x_skid = [exitflag long_accel x(3)*x(5) x omega(1:4) engine_rpm current_gear beta...
     Fz(1:4) alpha(1:4) T(1:4)];

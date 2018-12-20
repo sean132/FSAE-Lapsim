@@ -21,6 +21,9 @@ classdef Car
         tire
         
         ggPoints %g-g diagram points for car instance
+        longAccelLookup %maxLongAccel = f(latAccel,velocity)
+        longDecelLookup %maxLongDecel = f(latAccel,velocity)
+        comp
     end
     
     methods
@@ -192,7 +195,7 @@ classdef Car
         %   steady-state conditions
         
         function [c,ceq] = constraint1(obj,P)            
-            % no longitudinal acceleration constraint
+            % no lateral acceleration constraint
             % used for optimizing longitudinal acceleration/braking           
             P(9) = P(8);
             
