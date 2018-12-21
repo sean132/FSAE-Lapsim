@@ -1,16 +1,28 @@
 % Lapsim2
 clear
-carCell = carConfig; %generate all car to sim over
-
-for i = 1:size(carCell,1)
+setup_paths
+carCell = carConfig(); %generate all cars to sim over
+numCars = size(carCell,1);
+time = struct();time.prev = 0; time.curr = 0;
+tic
+for i = 1:numCars
     car = carCell{i,1};
     accelCar = carCell{i,2};
+    fprintf("car %d of %d - starting g-g\n",[i numCars]);
     paramArr = gg2(car);
+    fprintf("car %d of %d - g-g complete\n",[i numCars]);
+    time.curr = floor(toc);
+    fprintf("Stage Time: %d s; Total time elapsed: %d s\n",[time.curr-time.prev time.curr]);
+    time.prev = time.curr;
     car = makeGG(paramArr,car); %post-processes gg data and stores in car
     comp = Events2(car,accelCar); 
     comp.calcTimes();       %run events and calc points
-    car.comp = comp;
+    car.comp = comp;        %store in array
+    fprintf("car %d of %d - points calculated\n",[i numCars]);
+    time.curr = floor(toc);
+    fprintf("Stage Time: %d s; Total time elapsed: %d s\n",[time.curr-time.prev time.curr]);
 end
+fprintf("done\n");
 %%
 clear
 load lp2.mat
