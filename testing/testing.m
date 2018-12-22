@@ -22,11 +22,9 @@ a.plot();
 %%
 clear
 car = testCar();
-tic
 paramArr = gg2(car);
-toc
-%%
-points = makeGG(paramArr,car);
+car = makeGG(paramArr,car);
+car.plotGG();
 %%
 clear
 car = testCar();

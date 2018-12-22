@@ -150,9 +150,9 @@ classdef Events2 < handle
                 % find max acceleration from initial velocity to next apex
                 for i = last_index_1:extrema_indices(j) % segment from previous apex to next        
                     % basic kinematics equations
-                    lat_accel = long_vel^2*abs(curvature(i))/9.81;
+                    lat_accel = long_vel^2*abs(curvature(i));
                     lat_accel_vector_1(i) = lat_accel*sign(curvature(i));
-                    long_accel = F_accel(lat_accel,long_vel)*9.81;
+                    long_accel = F_accel(lat_accel,long_vel);
                     if long_vel == obj.car.max_vel
                         long_accel = 0;
                     end
@@ -175,9 +175,9 @@ classdef Events2 < handle
                 for i = extrema_indices(j):-1:last_index_2 % opposite direction from accel
 
                     % basic kinematics equations
-                    lat_accel = long_vel^2*abs(curvature(i))/9.81;
+                    lat_accel = long_vel^2*abs(curvature(i));
                     lat_accel_vector_2(i) = lat_accel*sign(curvature(i));
-                    long_accel = F_braking(lat_accel,long_vel)*9.81;
+                    long_accel = F_braking(lat_accel,long_vel);
                     if long_vel == obj.car.max_vel
                         long_accel = 0;
                     end
@@ -209,7 +209,7 @@ classdef Events2 < handle
             % replace acceleration and time with correct profile
             long_accel_final = long_accel_vector_1;
             long_accel_final(indices_2) = long_accel_vector_2(indices_2);
-            long_accel_final = long_accel_final/9.81;
+            long_accel_final = long_accel_final;
             lat_accel_final = lat_accel_vector_1;
             lat_accel_final(indices_2) = lat_accel_vector_2(indices_2);
             time_final = time_1;

@@ -4,6 +4,7 @@ setup_paths
 tic
 numCars = 3;
 rng(0);
+carArr = [];
 time = struct(); time.prev = 0; time.curr = 0;
 fprintf("randCar started\n");
 for i = 1:numCars
@@ -27,6 +28,7 @@ for i = 1:numCars
     catch err
         disp(err);
     end
+    carArr = [carArr car];
     save('randLapsim.mat');
 end
     

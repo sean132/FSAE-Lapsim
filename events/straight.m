@@ -27,7 +27,7 @@ for i = 1:10000
     %}
     
     % basic kinematics equations
-    long_accel = lininterp1(long_vel_interp,long_accel_interp,long_vel)*9.81;
+    long_accel = lininterp1(long_vel_interp,long_accel_interp,long_vel);
     if long_vel == max_vel
         long_accel = 0;
     end
@@ -38,6 +38,7 @@ for i = 1:10000
     % limit top speed to max velocity
     long_vel = min(long_vel,max_vel);
     time(i) = 2*(distance(i+1)-distance(i))/(long_vel+long_vel_initial);
+    %what's this 2 here for
 end      
 
 time = sum(time);

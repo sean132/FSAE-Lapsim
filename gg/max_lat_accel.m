@@ -76,7 +76,9 @@ x_ss = [exitflag long_accel x(3)*x(5) x omega(1:4) engine_rpm current_gear beta.
     Fz(1:4) alpha(1:4) T(1:4)];
 
 % maximum lateral accel in g's
-lat_accel = x(3)*x(5)/9.81;
+% lat_accel = x(3)*x(5)/9.81;
+%max lat accel in m/s^2
+lat_accel = x(3)*x(5);
 
 end
 

@@ -24,9 +24,3 @@ car.longAccelLookup = longAccelLookup;
 car.longDecelLookup = longDecelLookup;
 % gg = Polyhedron('V',ggpoints);
 % gg.minVRep();
-% figure(123);clf;
-% scatter3(ggpoints(:,1),ggpoints(:,2),ggpoints(:,3),'+')
-% % gg.plot()
-% xlabel('Long');
-% ylabel('Lat');
-% zlabel('Velocity');

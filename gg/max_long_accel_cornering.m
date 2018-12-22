@@ -73,7 +73,7 @@ long_accel_guess = x;
 x_accel = [exitflag long_accel lat_accel x omega(1:4) engine_rpm current_gear beta...
     Fz(1:4) alpha(1:4) T(1:4)];
     
-long_accel = long_accel/9.81;
+long_accel = long_accel;
 
 end
 

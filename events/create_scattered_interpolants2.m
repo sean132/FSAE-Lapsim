@@ -5,11 +5,11 @@ function [F_accel,F_braking] = create_scattered_interpolants2(vel_matrix_accel,v
 %   finds max possible accel/braking given a lateral accel and velocity
 
 long_g_accel = vel_matrix_accel(:,1);
-lat_g_accel = vel_matrix_accel(:,2)/9.81;
+lat_g_accel = vel_matrix_accel(:,2);
 vel_accel = vel_matrix_accel(:,3);
 
 long_g_braking = -vel_matrix_braking(:,1);
-lat_g_braking = vel_matrix_braking(:,2)/9.81;
+lat_g_braking = vel_matrix_braking(:,2);
 vel_braking = vel_matrix_braking(:,3);
 
 x = lat_g_accel;

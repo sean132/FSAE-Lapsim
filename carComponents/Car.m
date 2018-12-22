@@ -180,8 +180,13 @@ classdef Car
             
         end
         
-
-
+        function plotGG(car)
+            figure(123);clf;
+            scatter3(car.ggPoints(:,1),car.ggPoints(:,2),car.ggPoints(:,3),'+')
+            xlabel('Long Accel (m/s^2)');
+            ylabel('Lat Accel (m/s^2)');
+            zlabel('Velocity (m/s)');
+        end
 
         % These functions are used to set constraints for fmincon
         % input P: state and control vector containing:

@@ -12,13 +12,9 @@ parfor c1 = 1:numel(longVelArr)
     row = ParamSet();
     row(numel(latAccelArr)) = ParamSet();
     for c2 = 1:numel(latAccelArr)
-        latAccelg = latAccelArr(c2);
-        latAccel = latAccelg*9.81;
-        
-        [xAccel,longAccel,longAccelx0] = max_long_accel_cornering(longVel,...
-                latAccel,car);
-        [xBraking,longDecel,brakingDecelx0] = max_braking_decel_cornering(longVel,...
-                latAccel,car);
+        latAccel = latAccelArr(c2);
+        [xAccel,longAccel,longAccelx0] = max_long_accel_cornering(longVel,latAccel,car);
+        [xBraking,longDecel,brakingDecelx0] = max_braking_decel_cornering(longVel,latAccel,car);
         carParams = ParamSet(car,longVel); 
         carParams = carParams.setMaxLatParams(maxLatx,maxLatLatAccel,maxLatLongAccel,maxLatx0);
         carParams = carParams.setMaxAccelParams(xAccel,longAccel,latAccel,longAccelx0);

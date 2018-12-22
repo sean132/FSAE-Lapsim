@@ -57,7 +57,7 @@ braking_decel_guess = x;
 x_braking = [exitflag long_accel lat_accel x omega(1:4) engine_rpm current_gear beta...
     Fz(1:4) alpha(1:4) T(1:4)];
 
-long_decel = long_accel/9.81;
+long_decel = long_accel; %make this line less confusing
 
 end
 

@@ -75,4 +75,4 @@ x_accel = [exitflag long_accel x(3)*x(5) x omega(1:4) engine_rpm current_gear be
     Fz(1:4) alpha(1:4) T(1:4)];
 [x_table_accel] = generate_table(x_accel);
 
-long_accel = -fval/9.81;
+long_accel = -fval;
