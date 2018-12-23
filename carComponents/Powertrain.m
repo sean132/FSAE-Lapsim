@@ -14,7 +14,7 @@ classdef Powertrain
         G_d1
         G_d2_overrun
         G_d2_driving 
-        max_braking_torque 
+        max_braking_torque
     end
     
     methods

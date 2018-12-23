@@ -182,11 +182,9 @@ classdef Car
             end
             % Powertrain
             omega = [x(8); x(10); x(12); x(14)];
-            
             [engineRPM,currentGear] = obj.powertrain.engine_rpm(omega(3),omega(4),longVel);
             [T1,T2,T3,T4] = obj.powertrain.wheel_torques(engineRPM, omega(3), omega(4), throttle, currentGear);
-            T = [T1,T2,T3,T4]
-            
+            T = [T1,T2,T3,T4];
             Fz_front_static = (obj.M*9.81*obj.l_r+obj.aero.lift(longVel)*obj.aero.D_f)/obj.W_b;
             Fz_rear_static = (obj.M*9.81*obj.l_f+obj.aero.lift(longVel)*obj.aero.D_r)/obj.W_b;
             
@@ -220,6 +218,7 @@ classdef Car
 %             kFront = (obj.R.*omega(1:2)*cos(steerAngle)-x(3))/abs(x(3));
 %             kRear = (obj.R.*omega(3:4)-x(3))/abs(x(3));
 %             kappa = [kFront; kRear];
+            currentGear
             [Fx,Fy, Fxw] = tireForce(obj,steerAngle,alpha,kappa,Fz);
             xdot = zeros(14,1);
             xdot(1) = x(2);

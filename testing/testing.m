@@ -17,7 +17,7 @@ x1 = [0;
       v/r;
       0;
       v/r];
-u = [0;.5];
+u = [.1;.5];
 dt = .01;
 car.Jm = 0; car.Jw = 1;
 steps = 1000;
@@ -30,16 +30,19 @@ for i = 1:steps
     x1 = x2;
 end
 figure(1); clf
-toPlot = [3 5 8 10 12 14];
+toPlot = [3 8 10 12 14];
 names = {'yaw angle','yaw rate','long velo','lat velo','Xcg','Ycg','FL theta'...
     'FL w','FR theta','FR w','RL theta','RL w','RR theta','RR w'};
 c1 = 1;
 for i = toPlot
     subplot(numel(toPlot),1,c1)
-    plot(xArr(i,:),'+-');
+    plot(xArr(i,:),'.-');
     title(names{i});
     c1 = c1+1;
 end
+figure(2);clf
+plot(xArr(5,:),xArr(6,:),'.-')
+xlabel('xPos');ylabel('yPos');
 %% max lat accel testing
 clear
 car = testCar();
