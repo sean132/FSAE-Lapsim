@@ -3,22 +3,25 @@ classdef Car
     % equations adapted from Casanova Appendix
     
     properties
-        M
-        W_b
-        l_f
-        l_r
-        t_f
-        t_r
-        h_rr
-        h_rf
-        h_rc
-        R
-        h_g
-        R_sf
-        I_zz
+        M 
+        W_b %wheelbase
+        l_f %dist from cg to front axle
+        l_r %dist from cg to rear axle
+        t_f %trackwidth, front
+        t_r %trackwidth, rear
+        h_rr %roll center at rear
+        h_rf %roll center at front
+        h_rc %roll center at cg (approx)
+        R %wheel radius
+        h_g %cg height
+        R_sf %roll stiffness in front
+        I_zz %polar moment of inertia, z axis
         aero
         powertrain
         tire
+        
+        Jm %engine polar moi
+        Jw %wheel polar moi
         
         ggPoints %g-g diagram points for car instance
         longAccelLookup %maxLongAccel = f(latAccel,velocity)
@@ -54,7 +57,7 @@ classdef Car
             % outputs: vehicle accelerations and other properties
             
             % state and control matrix
-            steer_angle = P(1); % deg
+            steer_angle = P(1);
             throttle = P(2); % -1 for full braking, 1 for full throttle
             long_vel = P(3); % m/s
             lat_vel = P(4); % m/s
@@ -108,7 +111,7 @@ classdef Car
             alpha(4) = (lat_vel-obj.l_r*yaw_rate)/(long_vel-yaw_rate*obj.t_r/2)*180/pi;
          
             % Tire Forces
-            steer_angle = steer_angle_1*pi/180; % deg to rad
+            steer_angle = steer_angle_1*pi/180;
             [Fx,Fy,Fxw] = obj.tireForce(steer_angle,alpha,kappa,Fz);
             
             % Equations of Motion
@@ -145,7 +148,8 @@ classdef Car
             Fx = [F_x1; F_x2; F_x3; F_x4];
             Fy = [F_y1; F_y2; F_y3; F_y4];
         end
-        function xdot = dynamics(obj,x)
+        
+        function [xdot, alpha] = dynamics(obj,x,u)
 %             1: yaw angle
 %             2: yaw rate
 %             3: long velocity
@@ -162,22 +166,70 @@ classdef Car
 %             14: RR angular velocity
 %             lf: cg to front, lr: cg to rear
 %             u(1): steering input
-
-              
-
-%             xdot(1) = x(2);
-%             xdot(2) = ((Fx1-Fx2)*(obj.t_f/2) + (Fx3-Fx4)*(obj.t_r/2) + (Fy1+Fy2)*obj.l_f - (Fy3+Fy4)*obj.l_r)/obj.I_zz;
-%             xdot(3) = (Fx1+Fx2+Fx3+Fx4-Fax)/obj.M + x(2)*x(4);
-%             xdot(4) = (Fy1+Fy2+Fy3+Fy4)/obj.M - x(2)*x(3);
-%             xdot(5) = x(3)*cos(x(1))-x(4)*sin(x(1));
-%             xdot(6) = x(3)*sin(x(1))+x(4)*cos(x(1));
-%             xdot(7) = x(8);
-%             xdot(8) = (T1 - Fxwl*Rf)/Jwf;
-%             xdot(11) = x(12);
-%             xdot(12) = ((T3-Fx3*Rr)*(Jwr+Jm*(Gr/2)^2)-(T4-Fx4*Rr)*Jm*(Gr/2)^2)/(Jwr^2+2*Jwr*Jm*(Gr/2)^2);
-%             xdot(13) = x(14);
-%             xdot(14) = ((T4-Fx4*Rr)*(Jwr+Jm(Gr/2)^2)-(T3-Fx3*Rr)*Jm*(Gr/2)^2)/(Jwr^2+2*Jwr*Jm*(Gr/2)^2);
+%             u(2): throttle
+            steerAngle = u(1); %steering angle, radians
+            throttle = u(2); %[-1,1] max braking to max throttle
+            yawRate = x(2); %rad/s
+            longVel = x(3); %m/s
+            latVel = x(4); %m/s
+            alpha = zeros(4,1);
+            % slip angles (small angle assumption)
+            if longVel > 0
+                alpha(1) = -steerAngle+(latVel+obj.l_f*yawRate)/(longVel+yawRate*obj.t_f/2);
+                alpha(2) = -steerAngle+(latVel+obj.l_f*yawRate)/(longVel-yawRate*obj.t_f/2);
+                alpha(3) = (latVel-obj.l_r*yawRate)/(longVel+yawRate*obj.t_r/2);
+                alpha(4) = (latVel-obj.l_r*yawRate)/(longVel-yawRate*obj.t_r/2);    
+            end
+            % Powertrain
+            omega = [x(8); x(10); x(12); x(14)];
             
+            [engineRPM,currentGear] = obj.powertrain.engine_rpm(omega(3),omega(4),longVel);
+            [T1,T2,T3,T4] = obj.powertrain.wheel_torques(engineRPM, omega(3), omega(4), throttle, currentGear);
+            T = [T1,T2,T3,T4]
+            
+            Fz_front_static = (obj.M*9.81*obj.l_r+obj.aero.lift(longVel)*obj.aero.D_f)/obj.W_b;
+            Fz_rear_static = (obj.M*9.81*obj.l_f+obj.aero.lift(longVel)*obj.aero.D_r)/obj.W_b;
+            
+            long_load_transfer = (sum(T))/obj.R*(obj.h_g/obj.W_b); %(F_x1+F_x2+F_x3+F_x4)*h_g/W_b approximated (neglecting wheel dynamics) since longitudinal forces are unknown
+
+            lat_load_transfer_front = (yawRate*longVel*obj.M)/obj.t_f*((obj.l_r*obj.h_rf)/obj.W_b+...
+                obj.R_sf*(obj.h_g-obj.h_rc));
+            lat_load_transfer_rear = (yawRate*longVel*obj.M)/obj.t_r*((obj.l_r*obj.h_rr)/obj.W_b+...
+                (1-obj.R_sf)*(obj.h_g-obj.h_rc));
+            
+            % wheel load constraint method from Kelly
+            Fzvirtual = zeros(1,4);
+            Fzvirtual(1) = 0.5*Fz_front_static-0.5*long_load_transfer+lat_load_transfer_front;
+            Fzvirtual(2) = 0.5*Fz_front_static-0.5*long_load_transfer-lat_load_transfer_front;
+            Fzvirtual(3) = 0.5*Fz_rear_static+0.5*long_load_transfer+lat_load_transfer_rear;
+            Fzvirtual(4) = 0.5*Fz_rear_static+0.5*long_load_transfer-lat_load_transfer_rear;
+
+            % smooth approximation of max function
+            epsilon = 10;
+            Fz = (Fzvirtual + sqrt(Fzvirtual.^2 + epsilon))./2;
+
+            % Tire Slips
+            beta = rad2deg(atan(latVel/longVel)); % vehicle slip angle in deg
+            Fax = 0; %aero drag
+            Gr = obj.powertrain.drivetrain_reduction(currentGear)
+            kappa = (obj.R.*omega-x(3))/abs(x(3)) %need to update for nonzero steering angle
+            [Fx,Fy, Fxw] = tireForce(obj,steerAngle,alpha,kappa,Fz);
+            xdot = zeros(14,1);
+            xdot(1) = x(2);
+            xdot(2) = ((Fx(1)-Fx(2))*(obj.t_f/2) + (Fx(3)-Fx(4))*(obj.t_r/2) + (Fy(1)+Fy(2))*obj.l_f - (Fy(3)+Fy(4))*obj.l_r)/obj.I_zz;
+            xdot(3) = (sum(Fx)-Fax)/obj.M + x(2)*x(4);
+            xdot(4) = sum(Fy)/obj.M - x(2)*x(3);
+            xdot(5) = x(3)*cos(x(1))-x(4)*sin(x(1));
+            xdot(6) = x(3)*sin(x(1))+x(4)*cos(x(1));
+            xdot(7) = x(8);
+            xdot(8) = (T(1) - Fxw(1)*obj.R)/obj.Jw;
+            xdot(9) = x(10);
+            xdot(10) = (T(2) - Fxw(2)*obj.R)/obj.Jw;
+            denom = (obj.Jw^2+2*obj.Jw*obj.Jm*(Gr/2)^2);
+            xdot(11) = x(12);
+            xdot(12) = ((T(3)-Fx(3)*obj.R)*(obj.Jw+obj.Jm*(Gr/2)^2) - (T(4)-Fx(4)*obj.R)*obj.Jm*(Gr/2)^2)*(1/denom);
+            xdot(13) = x(14);
+            xdot(14) = ((T(4)-Fx(4)*obj.R)*(obj.Jw+obj.Jm*(Gr/2)^2) - (T(3)-Fx(3)*obj.R)*obj.Jm*(Gr/2)^2)*(1/denom);
         end
         
         function plotGG(car)
@@ -306,6 +358,29 @@ classdef Car
         function out = max_vel(obj)
             out = obj.powertrain.redline*pi/30*obj.R/...
                 obj.powertrain.drivetrain_reduction(numel(obj.powertrain.gears))-0.001;
+        end
+        function printState(obj,x,xdot)
+            fprintf("1. yaw angle: %0.2f\n",x(1));
+            fprintf("2. yaw rate : %0.2f\n",x(2));
+            fprintf("3. long velo: %0.2f\n",x(3));
+            fprintf("  long accel: %0.2f\n",xdot(3));
+            fprintf("4. lat velo : %0.2f\n",x(4));
+            fprintf("   lat accel: %0.2f\n",xdot(4));
+            fprintf("5.  Xcg     : %0.2f\n",x(5));
+            fprintf("6.  Ycg     : %0.2f\n",x(6));
+            fprintf("7.  FL theta: %0.2f\n",rad2deg(x(7)));
+            fprintf("8.  FL w    : %0.2f\n",rad2deg(x(8)));
+            fprintf("    FL a    : %0.2f\n",rad2deg(xdot(8)));
+            fprintf("9.  FR theta: %0.2f\n",rad2deg(x(9)));
+            fprintf("10. FR w    : %0.2f\n",rad2deg(x(10)));
+            fprintf("    FR a    : %0.2f\n",rad2deg(xdot(10)));
+            fprintf("11. RL theta: %0.2f\n",rad2deg(x(11)));
+            fprintf("12. RL w    : %0.2f\n",rad2deg(x(12)));
+            fprintf("    RL a    : %0.2f\n",rad2deg(xdot(12)));
+            fprintf("13. RR theta: %0.2f\n",rad2deg(x(13)));
+            fprintf("14. RR w    : %0.2f\n",rad2deg(x(14)));
+            fprintf("    RR a    : %0.2f\n",rad2deg(xdot(14)));
+            fprintf("\n");
         end
     end
     

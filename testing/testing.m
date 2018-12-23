@@ -1,3 +1,45 @@
+%% dynamics model
+clear; clc
+car = testCar();
+v = 10;
+r = car.R;
+x1 = [0;
+      0;
+      v;
+      0;
+      0;
+      0;
+      0;
+      v/r;
+      0;
+      v/r;
+      0;
+      v/r;
+      0;
+      v/r];
+u = [0;.5];
+dt = .01;
+car.Jm = 0; car.Jw = 1;
+steps = 1000;
+xArr = zeros(numel(x1),steps);
+for i = 1:steps
+    x1dot = car.dynamics(x1,u);
+    car.printState(x1,x1dot)
+    x2 = x1 + dt*x1dot;
+    xArr(:,i) = x1;
+    x1 = x2;
+end
+figure(1); clf
+toPlot = [3 5 8 10 12 14];
+names = {'yaw angle','yaw rate','long velo','lat velo','Xcg','Ycg','FL theta'...
+    'FL w','FR theta','FR w','RL theta','RL w','RR theta','RR w'};
+c1 = 1;
+for i = toPlot
+    subplot(numel(toPlot),1,c1)
+    plot(xArr(i,:),'+-');
+    title(names{i});
+    c1 = c1+1;
+end
 %% max lat accel testing
 clear
 car = testCar();
