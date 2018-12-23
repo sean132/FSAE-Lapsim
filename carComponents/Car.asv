@@ -57,7 +57,7 @@ classdef Car
             % outputs: vehicle accelerations and other properties
             
             % state and control matrix
-            steer_angle = P(1); % deg->rad
+            steer_angle = P(1);
             throttle = P(2); % -1 for full braking, 1 for full throttle
             long_vel = P(3); % m/s
             lat_vel = P(4); % m/s
@@ -99,7 +99,7 @@ classdef Car
             Fz = (Fzvirtual + sqrt(Fzvirtual.^2 + epsilon))./2;
 
             % Tire Slips
-            beta = rad2deg(atan(lat_vel/long_vel)); % vehicle slip angle in deg
+            beta = atan(lat_vel/long_vel)*180/pi; % vehicle slip angle in deg
             
             steer_angle_1 = steer_angle; % could be modified for ackermann steering 
             steer_angle_2 = steer_angle;
@@ -111,7 +111,7 @@ classdef Car
             alpha(4) = (lat_vel-obj.l_r*yaw_rate)/(long_vel-yaw_rate*obj.t_r/2)*180/pi;
          
             % Tire Forces
-            steer_angle = steer_angle_1;
+            steer_angle = steer_angle_1*pi/180;
             [Fx,Fy,Fxw] = obj.tireForce(steer_angle,alpha,kappa,Fz);
             
             % Equations of Motion
@@ -212,7 +212,10 @@ classdef Car
             beta = rad2deg(atan(latVel/longVel)); % vehicle slip angle in deg
             Fax = 0; %aero drag
             Gr = obj.powertrain.drivetrain_reduction(currentGear)
-            kappa = (obj.R.*omega-x(3))/abs(x(3)) %need to update for nonzero steering angle
+            k1 = 
+%             kFront = (obj.R.*omega(1:2)*cos(steerAngle)-x(3))/abs(x(3));
+%             kRear = (obj.R.*omega(3:4)-x(3))/abs(x(3));
+%             kappa = [kFront; kRear];
             [Fx,Fy, Fxw] = tireForce(obj,steerAngle,alpha,kappa,Fz);
             xdot = zeros(14,1);
             xdot(1) = x(2);

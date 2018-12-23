@@ -212,7 +212,14 @@ classdef Car
             beta = rad2deg(atan(latVel/longVel)); % vehicle slip angle in deg
             Fax = 0; %aero drag
             Gr = obj.powertrain.drivetrain_reduction(currentGear)
-            kappa = (obj.R.*omega-x(3))/abs(x(3)) %need to update for nonzero steering angle
+            k1 = (obj.R*x(8)/(x(3)+x(2)*obj.t_f/2))-1;
+            k2 = (obj.R*x(10)/(x(3)-x(2)*obj.t_f/2))-1;
+            k3 = (obj.R*x(12)/(x(3)+x(2)*obj.t_f/2))-1;
+            k4 = (obj.R*x(14)/(x(3)-x(2)*obj.t_f/2))-1;
+            kappa = [k1; k2; k3; k4];
+%             kFront = (obj.R.*omega(1:2)*cos(steerAngle)-x(3))/abs(x(3));
+%             kRear = (obj.R.*omega(3:4)-x(3))/abs(x(3));
+%             kappa = [kFront; kRear];
             [Fx,Fy, Fxw] = tireForce(obj,steerAngle,alpha,kappa,Fz);
             xdot = zeros(14,1);
             xdot(1) = x(2);
