@@ -1,15 +1,11 @@
 %%
-clear; clc
 hw = 10; hcg = 2; ht = 10;
-k = 1; c = .02;
-Ixx = 1;
-Iyy = 1;
+k = 1; c = 2;
 t1F = @(theta,phi) [cos(theta); 0; -sin(theta)];
 t2F = @(theta,phi) [sin(theta)*sin(phi); cos(phi); cos(theta)*sin(phi)];
 t3F = @(theta,phi) [sin(theta)*cos(phi); -sin(phi); cos(phi)*cos(theta)];
-
 t1DF = @(t,td,p,pd) [-td*sin(t); 0; -td*cos(t)];
-t2DF = @(t,td,p,pd) [(td*cos(t)*sin(p) + pd*sin(t)*cos(p));
+t2DF = @(t,td,p,pd) [(td*cos(t)*cos(p) - pd*sin(t)*sin(p));
                      -pd*sin(p); %there's probably a mistake in here
                      (-td*sin(t)*sin(p) + pd*cos(t)*cos(p))];
 r1 = @(t,p) (hw-hcg)*t1F(t,p) + t2F(t,p)*ht/2;
@@ -23,31 +19,31 @@ r3d = @(t,td,p,pd) -hcg*t1DF(t,td,p,pd) + t2DF(t,td,p,pd)*ht/2;
 r4d = @(t,td,p,pd) -hcg*t1DF(t,td,p,pd) - t2DF(t,td,p,pd)*ht/2;
 
 n = 1000;
-t0 = 0;
-p0 = pi/3;
-z = [zeros(4,n-1)]; zd = zeros(4,n); 
+z = zeros(4,n); zd = zeros(4,n); 
 zcgdd = zeros(4,n);
 Fxap = zeros(4,n); Fyap = zeros(4,n); Fzap = zeros(4,n); %forces applied at tires
-theta = [t0 zeros(1,n-1)]; thetad = zeros(1,n); thetadd = zeros(1,n);
-phi = [p0 zeros(1,n-1)]; phid = zeros(1,n); phidd = zeros(1,n);
+theta = zeros(4,n); thetad = zeros(4,n); thetadd = zeros(4,n);
+phi = zeros(4,n); phid = zeros(4,n); phidd = zeros(4,n);
 dt = .01;
 for i = 2:n
-    tc = theta(i-1); tcd = thetad(i-1);
-    pc = phi(i-1); pcd = phid(i-1);
-    r = [r1(tc,pc) r2(tc,pc) r3(tc,pc) r4(tc,pc)];
+    tc = theta(i-1);
+    tcd = thetad(i-1);
+    pc = phi(i-1);
+    pcd = phid(i-1);
+    r = [r1(tc,pc); r2(tc,pc); r3(tc,pc); r4(tc,pc)];
     z(:,i-1) = r(3,:)'; %take z components and store them
-    rd = [r1d(tc,tcd,pc,pcd) r2d(tc,tcd,pc,pcd) r3d(tc,tcd,pc,pcd) r4d(tc,tcd,pc,pcd)];
+    rd = [r1d(tc,tcd,pc,pcd); r2d(tc,tcd,pc,pcd); r3d(tc,tcd,pc,pcd); r4d(tc,tcd,pc,pcd)];
     zd(:,i-1) = rd(3,:)'; %take z velocities and store them
     
     Fzs = -k*z(:,i-1) - c*zd(:,i-1); %forces from shocks, positive z: spring in tension
     Fzt = Fzs + Fzap(:,i-1); %Ftotal: add to applied z forces
     momentSum = 0;
     for j = 1:4 %moments for all 4 tires
-        Fj = [Fxap(j,i-1); Fyap(j,i-1); Fzt(j)];
+        Fj = [Fxap(j,i-1); Fyap(j,i-1); Fzt];
         momentSum = momentSum + cross(r(:,j),Fj);
     end
-    phidd(i-1) = (1/Ixx)*(momentSum(1) + phid(i-1)*thetad(i-1)*sin(theta(i-1)))/cos(theta(i-1));
-    thetadd(i-1) = (1/Iyy)*momentSum(2);
+    phidd(i-1) = (momentSum(1) + phid(i-1)*thetad(i-1)*sin(theta(i-1)))/cos(theta(i-1));
+    thetadd(i-1) = momentSum(2);
     %second phidd eqn should be redundant since psi set to zero
     phidd2 = -(momentSum(3) - phid(i-1)*thetad(i-1)*cos(theta(i-1)));
     %state evolution for angles
@@ -57,14 +53,8 @@ for i = 2:n
     theta(i) = theta(i-1) + dt*thetad(i-1);   
 end
 figure(456);clf
-plot(z(1,:),'o-')
-hold on
-plot(z(2,:),'.-')
-plot(z(3,:),'o-')
-plot(z(4,:),'.-')
-plot(theta,'.-')
-legend('z1','z2','z3','z4','theta');
-disp('done');
+plot(z(1,:))
+
 %% rotations
 clear
 psiDeg = 0;     %3
