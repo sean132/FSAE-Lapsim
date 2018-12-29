@@ -20,6 +20,13 @@ classdef Car
         powertrain
         tire
         
+        Iyy
+        Ixx
+        k     %spring rate (assumed same over all tires)
+        c     %damping coefficient
+        TSmpc %mpc timestep
+        TSdyn %dynamics timestep
+        
         Jm %engine polar moi
         Jw %wheel polar moi
         
@@ -185,6 +192,8 @@ classdef Car
             [engineRPM,currentGear] = obj.powertrain.engine_rpm(omega(3),omega(4),longVel);
             [T1,T2,T3,T4] = obj.powertrain.wheel_torques(engineRPM, omega(3), omega(4), throttle, currentGear);
             T = [T1,T2,T3,T4];
+            
+            %%--
             Fz_front_static = (obj.M*9.81*obj.l_r+obj.aero.lift(longVel)*obj.aero.D_f)/obj.W_b;
             Fz_rear_static = (obj.M*9.81*obj.l_f+obj.aero.lift(longVel)*obj.aero.D_r)/obj.W_b;
             
@@ -205,6 +214,7 @@ classdef Car
             % smooth approximation of max function
             epsilon = 10;
             Fz = (Fzvirtual + sqrt(Fzvirtual.^2 + epsilon))./2;
+            %%--
 
             % Tire Slips
             beta = rad2deg(atan(latVel/longVel)); % vehicle slip angle in deg

@@ -1,36 +1,89 @@
-%%
+%% package into function&test
+setup_paths
 clear; clc
-hw = 10; hcg = 2; ht = 10;
-k = 1; c = .02;
-Ixx = 1;
-Iyy = 1;
+carCell = carConfig();
+car = carCell{1};
+car.k = 200*4.45*39.37;
+car.c = 700;
+car.Ixx = 60;
+car.Iyy = 82;
+car.TSmpc = .5;
+car.TSdyn = .01;
+state = struct();
+state.theta = 0;
+state.phi = pi/6;
+%4x3 matrix: 
+   %rows: 4 tires
+   %columns: 3 components
+Fap = zeros(4,3);
+[angles, debugInfo] = calcAngles(car,state,Fap);
+figure(456);clf
+
+t = debugInfo.t;
+z = debugInfo.z;
+phi = debugInfo.phi;
+theta = debugInfo.theta;
+plot(t,z(1,:),'o-')
+hold on
+plot(t,z(2,:),'.-')
+plot(t,z(3,:),'o-')
+plot(t,z(4,:),'.-')
+title('Tire Z heights');
+legend('z1','z2','z3','z4');
+xlim([0 .5]);
+grid
+figure(123);clf
+plot(t,phi,'.-');
+hold on
+plot(t,theta,'.-');
+title('Angles');
+legend('phi','theta');
+xlim([0 .5]);
+grid
+disp('done');
+%% dev 3d angles calcs
+clear; clc
+hw = 1.524; %m, wheelbase
+ht = 1.193; %m, trackwidth
+hcg = hw/2; %cg distance from rear axle
+% k = 200*4.45*39.37; %200 lbf/in -> N/m
+k = 200*4.45*39.37;
+m = 250; %kg
+c = 700;
+Ixx = 60; %need to measure this
+Iyy = 82; %need to measure this
+
+%basis vectors, 321 euler angle, psi = 0
 t1F = @(theta,phi) [cos(theta); 0; -sin(theta)];
 t2F = @(theta,phi) [sin(theta)*sin(phi); cos(phi); cos(theta)*sin(phi)];
 t3F = @(theta,phi) [sin(theta)*cos(phi); -sin(phi); cos(phi)*cos(theta)];
-
+%basis vector derivatives, 321 euler angles, psi = 0
 t1DF = @(t,td,p,pd) [-td*sin(t); 0; -td*cos(t)];
 t2DF = @(t,td,p,pd) [(td*cos(t)*sin(p) + pd*sin(t)*cos(p));
-                     -pd*sin(p); %there's probably a mistake in here
+                     -pd*sin(p); 
                      (-td*sin(t)*sin(p) + pd*cos(t)*cos(p))];
+%tire position vectors (3x1 vector)
 r1 = @(t,p) (hw-hcg)*t1F(t,p) + t2F(t,p)*ht/2;
 r2 = @(t,p) (hw-hcg)*t1F(t,p) - t2F(t,p)*ht/2;
 r3 = @(t,p) -hcg*t1F(t,p) + t2F(t,p)*ht/2;
 r4 = @(t,p) -hcg*t1F(t,p) - t2F(t,p)*ht/2;
-
+%tire position vector derivatives (3x1 vector)
 r1d = @(t,td,p,pd) (hw-hcg)*t1DF(t,td,p,pd) + t2DF(t,td,p,pd)*ht/2;
 r2d = @(t,td,p,pd) (hw-hcg)*t1DF(t,td,p,pd) - t2DF(t,td,p,pd)*ht/2;
 r3d = @(t,td,p,pd) -hcg*t1DF(t,td,p,pd) + t2DF(t,td,p,pd)*ht/2;
 r4d = @(t,td,p,pd) -hcg*t1DF(t,td,p,pd) - t2DF(t,td,p,pd)*ht/2;
 
-n = 1000;
+n = 20000;
 t0 = 0;
-p0 = pi/3;
-z = [zeros(4,n-1)]; zd = zeros(4,n); 
+p0 = pi/6;
+z = zeros(4,n); zd = zeros(4,n); 
 zcgdd = zeros(4,n);
 Fxap = zeros(4,n); Fyap = zeros(4,n); Fzap = zeros(4,n); %forces applied at tires
 theta = [t0 zeros(1,n-1)]; thetad = zeros(1,n); thetadd = zeros(1,n);
 phi = [p0 zeros(1,n-1)]; phid = zeros(1,n); phidd = zeros(1,n);
+phidd2 = zeros(1,n);
 dt = .01;
+%oscillation amplitude decreases with step size
 for i = 2:n
     tc = theta(i-1); tcd = thetad(i-1);
     pc = phi(i-1); pcd = phid(i-1);
@@ -42,14 +95,15 @@ for i = 2:n
     Fzs = -k*z(:,i-1) - c*zd(:,i-1); %forces from shocks, positive z: spring in tension
     Fzt = Fzs + Fzap(:,i-1); %Ftotal: add to applied z forces
     momentSum = 0;
-    for j = 1:4 %moments for all 4 tires
+    for j = 1:4 %moments for all 4 tires; M = rxF
         Fj = [Fxap(j,i-1); Fyap(j,i-1); Fzt(j)];
         momentSum = momentSum + cross(r(:,j),Fj);
     end
     phidd(i-1) = (1/Ixx)*(momentSum(1) + phid(i-1)*thetad(i-1)*sin(theta(i-1)))/cos(theta(i-1));
     thetadd(i-1) = (1/Iyy)*momentSum(2);
-    %second phidd eqn should be redundant since psi set to zero
-    phidd2 = -(momentSum(3) - phid(i-1)*thetad(i-1)*cos(theta(i-1)));
+    %second phidd eqn should be redundant since psi set to zero. currently
+    %all zeros,need to figure out why
+    phidd2(i-1) = -(momentSum(3) - phid(i-1)*thetad(i-1)*cos(theta(i-1)));
     %state evolution for angles
     phid(i) = phid(i-1) + dt*phidd(i-1);
     phi(i) = phi(i-1) + dt*phid(i-1);
@@ -57,13 +111,29 @@ for i = 2:n
     theta(i) = theta(i-1) + dt*thetad(i-1);   
 end
 figure(456);clf
-plot(z(1,:),'o-')
+t = (1:n).*dt;
+plot(t,z(1,:),'o-')
 hold on
-plot(z(2,:),'.-')
-plot(z(3,:),'o-')
-plot(z(4,:),'.-')
-plot(theta,'.-')
-legend('z1','z2','z3','z4','theta');
+plot(t,z(2,:),'.-')
+plot(t,z(3,:),'o-')
+plot(t,z(4,:),'.-')
+title('Tire Z heights');
+legend('z1','z2','z3','z4');
+xlim([0 .5]);
+grid
+figure(123);clf
+plot(t,phi,'.-');
+hold on
+plot(t,theta,'.-');
+title('Angles');
+legend('phi','theta');
+xlim([0 .5]);
+grid
+figure(789);clf
+plot(t,phidd-phidd2,'.-');
+hold on
+plot(t,phidd2,'.-');
+xlim([0 .5]);
 disp('done');
 %% rotations
 clear
