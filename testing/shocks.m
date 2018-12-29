@@ -16,7 +16,8 @@ state.phi = 0;
 state.phid = 0;
 Fap = zeros(4,3);
 %x component
-Fap(:,1) = (4.8*10^3)*(1/4.45)*ones(4,1);
+% Fap(:,1) = (4.8*10^3)*(1/4.45)*ones(4,1);
+Fap(:,2) = car.M*2*9.81;
 %z component
 Fap(:,3) = -car.M*9.81./4*ones(4,1);
 [angles, debugInfo] = calcAngles(car,state,Fap);

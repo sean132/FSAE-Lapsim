@@ -193,6 +193,41 @@ classdef Car
             [T1,T2,T3,T4] = obj.powertrain.wheel_torques(engineRPM, omega(3), omega(4), throttle, currentGear);
             T = [T1,T2,T3,T4];
             
+            %get Fz forces based on steady state
+            Fz = obj.ssForces(longVel,yawRate);
+
+            % Tire Slips
+            beta = rad2deg(atan(latVel/longVel)); % vehicle slip angle in deg
+            Fax = 0; %aero drag
+            Gr = obj.powertrain.drivetrain_reduction(currentGear);
+            
+            k1 = (obj.R*x(8)/(x(3)+x(2)*obj.t_f/2))-1;
+            k2 = (obj.R*x(10)/(x(3)-x(2)*obj.t_f/2))-1;
+            k3 = (obj.R*x(12)/(x(3)+x(2)*obj.t_f/2))-1;
+            k4 = (obj.R*x(14)/(x(3)-x(2)*obj.t_f/2))-1;
+            kappa = [k1; k2; k3; k4];
+            
+            [Fx,Fy, Fxw] = tireForce(obj,steerAngle,alpha,kappa,Fz);
+            
+            xdot = zeros(14,1);
+            xdot(1) = x(2);
+            xdot(2) = ((Fx(1)-Fx(2))*(obj.t_f/2) + (Fx(3)-Fx(4))*(obj.t_r/2) + (Fy(1)+Fy(2))*obj.l_f - (Fy(3)+Fy(4))*obj.l_r)/obj.I_zz;
+            xdot(3) = (sum(Fx)-Fax)/obj.M + x(2)*x(4);
+            xdot(4) = sum(Fy)/obj.M - x(2)*x(3);
+            xdot(5) = x(3)*cos(x(1))-x(4)*sin(x(1));
+            xdot(6) = x(3)*sin(x(1))+x(4)*cos(x(1));
+            xdot(7) = x(8);
+            xdot(8) = (T(1) - Fxw(1)*obj.R)/obj.Jw;
+            xdot(9) = x(10);
+            xdot(10) = (T(2) - Fxw(2)*obj.R)/obj.Jw;
+            denom = (obj.Jw^2+2*obj.Jw*obj.Jm*(Gr/2)^2);
+            xdot(11) = x(12);
+            xdot(12) = ((T(3)-Fx(3)*obj.R)*(obj.Jw+obj.Jm*(Gr/2)^2) - (T(4)-Fx(4)*obj.R)*obj.Jm*(Gr/2)^2)*(1/denom);
+            xdot(13) = x(14);
+            xdot(14) = ((T(4)-Fx(4)*obj.R)*(obj.Jw+obj.Jm*(Gr/2)^2) - (T(3)-Fx(3)*obj.R)*obj.Jm*(Gr/2)^2)*(1/denom);
+        end
+        
+        function Fz = ssForces(obj,longVel,yawRate)
             %%--
             Fz_front_static = (obj.M*9.81*obj.l_r+obj.aero.lift(longVel)*obj.aero.D_f)/obj.W_b;
             Fz_rear_static = (obj.M*9.81*obj.l_f+obj.aero.lift(longVel)*obj.aero.D_r)/obj.W_b;
@@ -215,39 +250,7 @@ classdef Car
             epsilon = 10;
             Fz = (Fzvirtual + sqrt(Fzvirtual.^2 + epsilon))./2;
             %%--
-
-            % Tire Slips
-            beta = rad2deg(atan(latVel/longVel)); % vehicle slip angle in deg
-            Fax = 0; %aero drag
-            Gr = obj.powertrain.drivetrain_reduction(currentGear);
-            k1 = (obj.R*x(8)/(x(3)+x(2)*obj.t_f/2))-1;
-            k2 = (obj.R*x(10)/(x(3)-x(2)*obj.t_f/2))-1;
-            k3 = (obj.R*x(12)/(x(3)+x(2)*obj.t_f/2))-1;
-            k4 = (obj.R*x(14)/(x(3)-x(2)*obj.t_f/2))-1;
-            kappa = [k1; k2; k3; k4];
-%             kFront = (obj.R.*omega(1:2)*cos(steerAngle)-x(3))/abs(x(3));
-%             kRear = (obj.R.*omega(3:4)-x(3))/abs(x(3));
-%             kappa = [kFront; kRear];
-            currentGear
-            [Fx,Fy, Fxw] = tireForce(obj,steerAngle,alpha,kappa,Fz);
-            xdot = zeros(14,1);
-            xdot(1) = x(2);
-            xdot(2) = ((Fx(1)-Fx(2))*(obj.t_f/2) + (Fx(3)-Fx(4))*(obj.t_r/2) + (Fy(1)+Fy(2))*obj.l_f - (Fy(3)+Fy(4))*obj.l_r)/obj.I_zz;
-            xdot(3) = (sum(Fx)-Fax)/obj.M + x(2)*x(4);
-            xdot(4) = sum(Fy)/obj.M - x(2)*x(3);
-            xdot(5) = x(3)*cos(x(1))-x(4)*sin(x(1));
-            xdot(6) = x(3)*sin(x(1))+x(4)*cos(x(1));
-            xdot(7) = x(8);
-            xdot(8) = (T(1) - Fxw(1)*obj.R)/obj.Jw;
-            xdot(9) = x(10);
-            xdot(10) = (T(2) - Fxw(2)*obj.R)/obj.Jw;
-            denom = (obj.Jw^2+2*obj.Jw*obj.Jm*(Gr/2)^2);
-            xdot(11) = x(12);
-            xdot(12) = ((T(3)-Fx(3)*obj.R)*(obj.Jw+obj.Jm*(Gr/2)^2) - (T(4)-Fx(4)*obj.R)*obj.Jm*(Gr/2)^2)*(1/denom);
-            xdot(13) = x(14);
-            xdot(14) = ((T(4)-Fx(4)*obj.R)*(obj.Jw+obj.Jm*(Gr/2)^2) - (T(3)-Fx(3)*obj.R)*obj.Jm*(Gr/2)^2)*(1/denom);
         end
-        
         function plotGG(car)
             figure(123);clf;
             scatter3(car.ggPoints(:,1),car.ggPoints(:,2),car.ggPoints(:,3),'+')

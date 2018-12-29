@@ -1,4 +1,4 @@
-function [angles, debugInfo] = calcAngles(car,state, Fap)
+function [outputs, debugInfo] = calcAngles(car,state, Fap)
 %Fap: 4x3 matrix: 
    %rows: 4 tires
    %columns: 3 components
@@ -91,11 +91,12 @@ for i = 2:n+1
     end
 end
 t = (1:n).*dt;
-angles = struct();
-angles.theta = theta(n);
-angles.thetad = thetad(n);
-angles.phi = phi(n);
-angles.phid = phid(n);
+outputs = struct();
+outputs.theta = theta(n);
+outputs.thetad = thetad(n);
+outputs.phi = phi(n);
+outputs.phid = phid(n);
+outputs.Fz = FzArr;
 debugInfo = struct();
 debugInfo.theta = theta;
 debugInfo.thetad = thetad;
