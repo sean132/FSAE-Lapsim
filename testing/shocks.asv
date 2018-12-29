@@ -1,20 +1,49 @@
 %% package into function&test
+setup_paths
 clear; clc
-car = carConfig();
+carCell = carConfig();
+car = carCell{1};
 car.k = 200*4.45*39.37;
 car.c = 700;
 car.Ixx = 60;
 car.Iyy = 82;
+car.TSmpc = 1;
+car.TSdyn = .01;
 state = struct();
 state.theta = 0;
-state.phi = 0;
-%3x4 matrix: 
-   %rows: 3 components
-   %columns: 4 tires
-Fxap = zeros(; %applied forces, per tire
-Fyap = 
-
-
+state.thetad = 0;
+state.phi = deg2rad(3);
+state.phid = 0;
+Fap = zeros(4,3);
+%z component
+Fap(:,e) = -car.M*9.81./4*ones(4,1);
+[angles, debugInfo] = calcAngles(car,state,Fap);
+figure(456);clf
+Fz = debugInfo.FzArr;
+t = debugInfo.t;
+z = debugInfo.z;
+phi = debugInfo.phi;
+theta = debugInfo.theta;
+plot(t,z(1,:),'o-')
+hold on
+plot(t,z(2,:),'.-')
+plot(t,z(3,:),'o-')
+plot(t,z(4,:),'.-')
+title('Tire Z heights');
+grid
+legend('z1','z2','z3','z4');
+figure(123);clf
+plot(t,rad2deg(phi),'.-');
+hold on
+plot(t,rad2deg(theta),'.-');
+title('Angles (deg)');
+legend('phi','theta');
+grid
+figure(789);clf
+plot(t,Fz/4.45,'.-')
+title('Forces (lbf)');
+disp('done');
+grid
 %% dev 3d angles calcs
 clear; clc
 hw = 1.524; %m, wheelbase
@@ -91,7 +120,7 @@ hold on
 plot(t,z(2,:),'.-')
 plot(t,z(3,:),'o-')
 plot(t,z(4,:),'.-')
-title('Tire Z forces');
+title('Tire Z heights');
 legend('z1','z2','z3','z4');
 xlim([0 .5]);
 grid

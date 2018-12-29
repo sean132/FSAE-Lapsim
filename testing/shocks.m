@@ -3,17 +3,22 @@ setup_paths
 clear; clc
 carCell = carConfig();
 car = carCell{1};
-car.k = 200*4.45*39.37;
-car.c = 700;
+car.k = 100*4.45*39.37;
+car.c = 500;
 car.Ixx = 60;
 car.Iyy = 82;
-car.TSmpc = .5;
-car.TSdyn = .01;
+car.TSmpc = 1;
+car.TSdyn = .001;
 state = struct();
 state.theta = 0;
+state.thetad = 0;
 state.phi = 0;
+state.phid = 0;
 Fap = zeros(4,3);
-Fap(:,end) = -car.M*9.81./4*ones(4,1);
+%x component
+Fap(:,1) = (4.8*10^3)*(1/4.45)*ones(4,1);
+%z component
+Fap(:,3) = -car.M*9.81./4*ones(4,1);
 [angles, debugInfo] = calcAngles(car,state,Fap);
 figure(456);clf
 Fz = debugInfo.FzArr;
@@ -21,26 +26,25 @@ t = debugInfo.t;
 z = debugInfo.z;
 phi = debugInfo.phi;
 theta = debugInfo.theta;
-plot(t,z(1,:),'o-')
+plot(t,z(1,:)*39.37,'o-')
 hold on
-plot(t,z(2,:),'.-')
-plot(t,z(3,:),'o-')
-plot(t,z(4,:),'.-')
-title('Tire Z heights');
-legend('z1','z2','z3','z4');
-xlim([0 .5]);
+plot(t,z(2,:)*39.37,'.-')
+plot(t,z(3,:)*39.37,'o-')
+plot(t,z(4,:)*39.37,'.-')
+title('Tire Z displacement(in)');
 grid
+legend('z1','z2','z3','z4');
 figure(123);clf
-plot(t,phi,'.-');
+plot(t,rad2deg(phi),'.-');
 hold on
-plot(t,theta,'.-');
-title('Angles');
+plot(t,rad2deg(theta),'.-');
+title('Angles (deg)');
 legend('phi','theta');
-xlim([0 .5]);
 grid
 figure(789);clf
-plot(t,Fz,'.-')
-title('Forces (N)');
+plot(t,Fz/4.45,'.-')
+legend('z1','z2','z3','z4');
+title('Z Force Per Tire (lbf)');
 disp('done');
 grid
 %% dev 3d angles calcs

@@ -1,4 +1,4 @@
-function [angles, FzArr, debugInfo] = calcAngles(car,state, Fap)
+function [angles, debugInfo] = calcAngles(car,state, Fap)
 %Fap: 4x3 matrix: 
    %rows: 4 tires
    %columns: 3 components
@@ -8,6 +8,7 @@ hcg = car.l_r;
 k = car.k;
 m = car.M;
 c = car.c;
+hrc = car.h_rc; %approx roll center height
 TSmpc = car.TSmpc;
 TSdyn = car.TSdyn;
 Ixx = car.Ixx;
@@ -42,11 +43,12 @@ t1DF = @(t,td,p,pd) [-td*sin(t); 0; -td*cos(t)];
 t2DF = @(t,td,p,pd) [(td*cos(t)*sin(p) + pd*sin(t)*cos(p));
                      -pd*sin(p); 
                      (-td*sin(t)*sin(p) + pd*cos(t)*cos(p))];
+t3DF = @(t,td,p,pd) [td*cos(t)*cos(phi)-pd*sin(t)*sin(p);
 %tire position vectors (3x1 vector)
-r1 = @(t,p) (hw-hcg)*t1F(t,p) + t2F(t,p)*ht/2;
-r2 = @(t,p) (hw-hcg)*t1F(t,p) - t2F(t,p)*ht/2;
-r3 = @(t,p) -hcg*t1F(t,p) + t2F(t,p)*ht/2;
-r4 = @(t,p) -hcg*t1F(t,p) - t2F(t,p)*ht/2;
+r1 = @(t,p) (hw-hcg)*t1F(t,p) + t2F(t,p)*ht/2 + hrc*t3F(t,p);
+r2 = @(t,p) (hw-hcg)*t1F(t,p) - t2F(t,p)*ht/2 + hrc*t3F(t,p);
+r3 = @(t,p) -hcg*t1F(t,p) + t2F(t,p)*ht/2 + hrc*t3F(t,p);
+r4 = @(t,p) -hcg*t1F(t,p) - t2F(t,p)*ht/2 + hrc*t3F(t,p);
 %tire position vector derivatives (3x1 vector)
 r1d = @(t,td,p,pd) (hw-hcg)*t1DF(t,td,p,pd) + t2DF(t,td,p,pd)*ht/2;
 r2d = @(t,td,p,pd) (hw-hcg)*t1DF(t,td,p,pd) - t2DF(t,td,p,pd)*ht/2;
@@ -64,7 +66,7 @@ for i = 2:n
     
     Fzs = -k*z(:,i-1) - c*zd(:,i-1); %forces from shocks, positive z: spring in tension
     Fzt = Fzs + Fzap(:,i-1); %Ftotal: add to applied z forces
-    FzArr(i) = Fzt;
+    FzArr(:,i-1) = Fzt;
     momentSum = 0;
     for j = 1:4 %moments for all 4 tires; M = rxF
         Fj = [Fxap(j,i-1); Fyap(j,i-1); Fzt(j)];
@@ -95,3 +97,4 @@ debugInfo.phid = phid;
 debugInfo.z = z;
 debugInfo.t = t;
 debugInfo.zd = zd;
+debugInfo.FzArr = FzArr;
