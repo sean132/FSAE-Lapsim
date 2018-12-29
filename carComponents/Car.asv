@@ -180,10 +180,7 @@ classdef Car
             longVel = x(3); %m/s
             latVel = x(4); %m/s
             
-            %get Fz forces based on steady state
-            Fz = obj.ssForces(longVel,yawRate);
             
-            %calc tire stuff -- package into tireForce
             alpha = zeros(4,1);
             % slip angles (small angle assumption)
             if longVel > 0
@@ -192,13 +189,13 @@ classdef Car
                 alpha(3) = (latVel-obj.l_r*yawRate)/(longVel+yawRate*obj.t_r/2);
                 alpha(4) = (latVel-obj.l_r*yawRate)/(longVel-yawRate*obj.t_r/2);    
             end
+            
             k1 = (obj.R*x(8)/(x(3)+x(2)*obj.t_f/2))-1;
             k2 = (obj.R*x(10)/(x(3)-x(2)*obj.t_f/2))-1;
             k3 = (obj.R*x(12)/(x(3)+x(2)*obj.t_f/2))-1;
             k4 = (obj.R*x(14)/(x(3)-x(2)*obj.t_f/2))-1;
             kappa = [k1; k2; k3; k4];
             [Fx,Fy, Fxw] = tireForce(obj,steerAngle,alpha,kappa,Fz);
-            % end calc tire stuff
             
             % Powertrain
             omega = [x(8); x(10); x(12); x(14)];
@@ -206,10 +203,15 @@ classdef Car
             [T1,T2,T3,T4] = obj.powertrain.wheel_torques(engineRPM, omega(3), omega(4), throttle, currentGear);
             T = [T1,T2,T3,T4];
             
+            %get Fz forces based on steady state
+            Fz = obj.ssForces(longVel,yawRate);
+
             % Tire Slips
             beta = rad2deg(atan(latVel/longVel)); % vehicle slip angle in deg
             Fax = 0; %aero drag
             Gr = obj.powertrain.drivetrain_reduction(currentGear);
+            
+            
             
             xdot = zeros(14,1);
             xdot(1) = x(2);
@@ -229,6 +231,7 @@ classdef Car
             xdot(14) = ((T(4)-Fx(4)*obj.R)*(obj.Jw+obj.Jm*(Gr/2)^2) - (T(3)-Fx(3)*obj.R)*obj.Jm*(Gr/2)^2)*(1/denom);
         end
         function Fz = ssForces(obj,longVel,yawRate)
+            %%--
             Fz_front_static = (obj.M*9.81*obj.l_r+obj.aero.lift(longVel)*obj.aero.D_f)/obj.W_b;
             Fz_rear_static = (obj.M*9.81*obj.l_f+obj.aero.lift(longVel)*obj.aero.D_r)/obj.W_b;
             
@@ -247,8 +250,9 @@ classdef Car
             Fzvirtual(4) = 0.5*Fz_rear_static+0.5*long_load_transfer-lat_load_transfer_rear;
 
             % smooth approximation of max function
-            epsilon = 10; %why 10
+            epsilon = 10;
             Fz = (Fzvirtual + sqrt(Fzvirtual.^2 + epsilon))./2;
+            %%--
         end
         function plotGG(car)
             figure(123);clf;
