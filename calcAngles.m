@@ -29,8 +29,10 @@ Fzap = Fap(:,3)*ones(1,n);
 theta = [t0 zeros(1,n-1)]; thetad = zeros(1,n); thetadd = zeros(1,n);
 phi = [p0 zeros(1,n-1)]; phid = zeros(1,n); phidd = zeros(1,n);
 % zcgdd = zeros(4,n); %not currently tracking zcgdd, need to
-z = zeros(4,n); zd = zeros(4,n); 
 
+%non-state arrays (not state variables but nice to keep track of)
+z = zeros(4,n); zd = zeros(4,n); 
+FzArr = zeros(4,n);
 %basis vectors, 321 euler angle, psi = 0
 t1F = @(theta,phi) [cos(theta); 0; -sin(theta)];
 t2F = @(theta,phi) [sin(theta)*sin(phi); cos(phi); cos(theta)*sin(phi)];
@@ -62,6 +64,7 @@ for i = 2:n
     
     Fzs = -k*z(:,i-1) - c*zd(:,i-1); %forces from shocks, positive z: spring in tension
     Fzt = Fzs + Fzap(:,i-1); %Ftotal: add to applied z forces
+    FzArr(:,i-1) = Fzt;
     momentSum = 0;
     for j = 1:4 %moments for all 4 tires; M = rxF
         Fj = [Fxap(j,i-1); Fyap(j,i-1); Fzt(j)];
@@ -92,3 +95,4 @@ debugInfo.phid = phid;
 debugInfo.z = z;
 debugInfo.t = t;
 debugInfo.zd = zd;
+debugInfo.FzArr = FzArr;

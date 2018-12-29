@@ -219,7 +219,7 @@ classdef Car
             % Tire Slips
             beta = rad2deg(atan(latVel/longVel)); % vehicle slip angle in deg
             Fax = 0; %aero drag
-            Gr = obj.powertrain.drivetrain_reduction(currentGear)
+            Gr = obj.powertrain.drivetrain_reduction(currentGear);
             k1 = (obj.R*x(8)/(x(3)+x(2)*obj.t_f/2))-1;
             k2 = (obj.R*x(10)/(x(3)-x(2)*obj.t_f/2))-1;
             k3 = (obj.R*x(12)/(x(3)+x(2)*obj.t_f/2))-1;

@@ -11,14 +11,12 @@ car.TSmpc = .5;
 car.TSdyn = .01;
 state = struct();
 state.theta = 0;
-state.phi = pi/6;
-%4x3 matrix: 
-   %rows: 4 tires
-   %columns: 3 components
+state.phi = 0;
 Fap = zeros(4,3);
+Fap(:,end) = -car.M*9.81./4*ones(4,1);
 [angles, debugInfo] = calcAngles(car,state,Fap);
 figure(456);clf
-
+Fz = debugInfo.FzArr;
 t = debugInfo.t;
 z = debugInfo.z;
 phi = debugInfo.phi;
@@ -40,7 +38,11 @@ title('Angles');
 legend('phi','theta');
 xlim([0 .5]);
 grid
+figure(789);clf
+plot(t,Fz,'.-')
+title('Forces (N)');
 disp('done');
+grid
 %% dev 3d angles calcs
 clear; clc
 hw = 1.524; %m, wheelbase
