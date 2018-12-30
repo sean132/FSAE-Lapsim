@@ -14,10 +14,10 @@ TSdyn = car.TSdyn;
 Ixx = car.Ixx;
 Iyy = car.Iyy;
 
-t0 = state.theta;
-t0d = state.thetad;
-p0 = state.phi;
-p0d = state.phid;
+t0 = state(1);
+t0d = state(2);
+p0 = state(3);
+p0d = state(4);
 
 n = round(TSmpc/TSdyn,0);
 dt = TSdyn;

@@ -9,11 +9,11 @@ car.Ixx = 60;
 car.Iyy = 82;
 car.TSmpc = 1;
 car.TSdyn = .001;
-state = struct();
-state.theta = 0;
-state.thetad = 0;
-state.phi = 0;
-state.phid = 0;
+state = zeros(4,1);
+state(1) = 0;
+state(2) = 0;
+state(3) = 0;
+state(4) = 0;
 Fap = zeros(4,3);
 %x component
 % Fap(:,1) = (4.8*10^3)*(1/4.45)*ones(4,1);

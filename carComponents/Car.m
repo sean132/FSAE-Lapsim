@@ -21,7 +21,7 @@ classdef Car
         tire
         
         Iyy
-        Ixx
+        Ixx   % needs to be about roll center
         k     %spring rate (assumed same over all tires)
         c     %damping coefficient
         TSmpc %mpc timestep
@@ -83,31 +83,11 @@ classdef Car
             [engine_rpm,current_gear] = obj.powertrain.engine_rpm(omega(3),omega(4),long_vel);
             [T_1,T_2,T_3,T_4] = obj.powertrain.wheel_torques(engine_rpm, omega(3), omega(4), throttle, current_gear);
             T = [T_1,T_2,T_3,T_4];
-            % Normal Loads
-            Fz_front_static = (obj.M*9.81*obj.l_r+obj.aero.lift(long_vel)*obj.aero.D_f)/obj.W_b;
-            Fz_rear_static = (obj.M*9.81*obj.l_f+obj.aero.lift(long_vel)*obj.aero.D_r)/obj.W_b;
             
-            long_load_transfer = (sum(T))/obj.R*(obj.h_g/obj.W_b); %(F_x1+F_x2+F_x3+F_x4)*h_g/W_b approximated (neglecting wheel dynamics) since longitudinal forces are unknown
-
-            lat_load_transfer_front = (yaw_rate*long_vel*obj.M)/obj.t_f*((obj.l_r*obj.h_rf)/obj.W_b+...
-                obj.R_sf*(obj.h_g-obj.h_rc));
-            lat_load_transfer_rear = (yaw_rate*long_vel*obj.M)/obj.t_r*((obj.l_r*obj.h_rr)/obj.W_b+...
-                (1-obj.R_sf)*(obj.h_g-obj.h_rc));
+            Fz = ssForces(obj,longVel,yawRate,T);
             
-            % wheel load constraint method from Kelly
-            Fzvirtual = zeros(1,4);
-            Fzvirtual(1) = 0.5*Fz_front_static-0.5*long_load_transfer+lat_load_transfer_front;
-            Fzvirtual(2) = 0.5*Fz_front_static-0.5*long_load_transfer-lat_load_transfer_front;
-            Fzvirtual(3) = 0.5*Fz_rear_static+0.5*long_load_transfer+lat_load_transfer_rear;
-            Fzvirtual(4) = 0.5*Fz_rear_static+0.5*long_load_transfer-lat_load_transfer_rear;
-
-            % smooth approximation of max function
-            epsilon = 10;
-            Fz = (Fzvirtual + sqrt(Fzvirtual.^2 + epsilon))./2;
-
             % Tire Slips
             beta = atan(lat_vel/long_vel)*180/pi; % vehicle slip angle in deg
-            
             steer_angle_1 = steer_angle; % could be modified for ackermann steering 
             steer_angle_2 = steer_angle;
             
@@ -156,24 +136,15 @@ classdef Car
             Fy = [F_y1; F_y2; F_y3; F_y4];
         end
         
-        function [xdot, alpha] = dynamics(obj,x,u)
-%             1: yaw angle
-%             2: yaw rate
-%             3: long velocity
-%             4: lat velocity
-%             5: Xcg
-%             6: Ycg
-%             7:  FL angular position
-%             8:  FL angular velocity
-%             9:  FR angular position
-%             10: FR angular velocity
-%             11: RL angular position
-%             12: RL angular velocity
-%             13: RR angular position
-%             14: RR angular velocity
+        function [xdot, forces] = dynamics(obj,x,u)
+%             1: yaw angle 2: yaw rate 3: long velocity 4: lat velocity
+%             5: Xcg 6: Ycg 
+%             7:  FL angular position 8:  FL angular velocity
+%             9:  FR angular position 10: FR angular velocity
+%             11: RL angular position 12: RL angular velocity
+%             13: RR angular position 14: RR angular velocity
 %             lf: cg to front, lr: cg to rear
-%             u(1): steering input
-%             u(2): throttle
+%             u(1): steering input u(2): throttle
             steerAngle = u(1); %steering angle, radians
             throttle = u(2); %[-1,1] max braking to max throttle
             yawRate = x(2); %rad/s
@@ -185,10 +156,8 @@ classdef Car
             [engineRPM,currentGear] = obj.powertrain.engine_rpm(omega(3),omega(4),longVel);
             [T1,T2,T3,T4] = obj.powertrain.wheel_torques(engineRPM, omega(3), omega(4), throttle, currentGear);
             T = [T1,T2,T3,T4];
-            
             %get Fz forces based on steady state
             Fz = obj.ssForces(longVel,yawRate,T);
-            
             %calc tire stuff -- package into tireForce
             alpha = zeros(4,1);
             % slip angles (small angle assumption)
@@ -204,13 +173,19 @@ classdef Car
             k4 = (obj.R*x(14)/(x(3)-x(2)*obj.t_f/2))-1;
             kappa = [k1; k2; k3; k4];
             [Fx,Fy, Fxw] = tireForce(obj,steerAngle,alpha,kappa,Fz);
-            % end calc tire stuff
             
             % Tire Slips
             beta = rad2deg(atan(latVel/longVel)); % vehicle slip angle in deg
             Fax = 0; %aero drag
             Gr = obj.powertrain.drivetrain_reduction(currentGear);
             
+            forces = struct(); %store calculated forces
+            forces.T = T; %tire powertrain torques 1-4
+%             forces.FzAero = FzAero;
+            forces.Fz = Fz; %tire total z forces 1-4
+            forces.Fx = Fx; %tire total x forces 1-4
+            forces.Fy = Fy; %tire total y forces 1-4
+            forces.Ftotal = [Fx Fy Fz'];
             xdot = zeros(14,1);
             xdot(1) = x(2);
             xdot(2) = ((Fx(1)-Fx(2))*(obj.t_f/2) + (Fx(3)-Fx(4))*(obj.t_r/2) + (Fy(1)+Fy(2))*obj.l_f - (Fy(3)+Fy(4))*obj.l_r)/obj.I_zz;
