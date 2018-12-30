@@ -163,9 +163,9 @@ classdef Car
 %             4: lat velocity
 %             5: Xcg
 %             6: Ycg
-%             7: FL angular position
-%             8: FL angular velocity
-%             9: FR angular position
+%             7:  FL angular position
+%             8:  FL angular velocity
+%             9:  FR angular position
 %             10: FR angular velocity
 %             11: RL angular position
 %             12: RL angular velocity
@@ -180,8 +180,14 @@ classdef Car
             longVel = x(3); %m/s
             latVel = x(4); %m/s
             
+            % Powertrain
+            omega = [x(8); x(10); x(12); x(14)];
+            [engineRPM,currentGear] = obj.powertrain.engine_rpm(omega(3),omega(4),longVel);
+            [T1,T2,T3,T4] = obj.powertrain.wheel_torques(engineRPM, omega(3), omega(4), throttle, currentGear);
+            T = [T1,T2,T3,T4];
+            
             %get Fz forces based on steady state
-            Fz = obj.ssForces(longVel,yawRate);
+            Fz = obj.ssForces(longVel,yawRate,T);
             
             %calc tire stuff -- package into tireForce
             alpha = zeros(4,1);
@@ -199,12 +205,6 @@ classdef Car
             kappa = [k1; k2; k3; k4];
             [Fx,Fy, Fxw] = tireForce(obj,steerAngle,alpha,kappa,Fz);
             % end calc tire stuff
-            
-            % Powertrain
-            omega = [x(8); x(10); x(12); x(14)];
-            [engineRPM,currentGear] = obj.powertrain.engine_rpm(omega(3),omega(4),longVel);
-            [T1,T2,T3,T4] = obj.powertrain.wheel_torques(engineRPM, omega(3), omega(4), throttle, currentGear);
-            T = [T1,T2,T3,T4];
             
             % Tire Slips
             beta = rad2deg(atan(latVel/longVel)); % vehicle slip angle in deg
@@ -228,7 +228,7 @@ classdef Car
             xdot(13) = x(14);
             xdot(14) = ((T(4)-Fx(4)*obj.R)*(obj.Jw+obj.Jm*(Gr/2)^2) - (T(3)-Fx(3)*obj.R)*obj.Jm*(Gr/2)^2)*(1/denom);
         end
-        function Fz = ssForces(obj,longVel,yawRate)
+        function Fz = ssForces(obj,longVel,yawRate,T)
             Fz_front_static = (obj.M*9.81*obj.l_r+obj.aero.lift(longVel)*obj.aero.D_f)/obj.W_b;
             Fz_rear_static = (obj.M*9.81*obj.l_f+obj.aero.lift(longVel)*obj.aero.D_r)/obj.W_b;
             
