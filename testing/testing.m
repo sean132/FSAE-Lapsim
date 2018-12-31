@@ -1,4 +1,4 @@
-%% dynamics model
+%% dynamics model testing
 clear; clc
 car = testCar();
 v = 10;
@@ -17,10 +17,10 @@ x1 = [0;
       v/r;
       0;
       v/r];
-u = [.1;0];
-dt = .01;
+u = [0;0];
+dt = .005;
 car.Jm = 0; car.Jw = 1;
-steps = 400;
+steps = 800;
 xArr = zeros(numel(x1),steps);
 for i = 1:steps
     x1dot = car.dynamics(x1,u);
@@ -30,13 +30,13 @@ for i = 1:steps
     x1 = x2;
 end
 figure(1); clf
-toPlot = [1 3];
+toPlot = [1 2];
 names = {'yaw angle','yaw rate','long velo','lat velo','Xcg','Ycg','FL theta'...
     'FL w','FR theta','FR w','RL theta','RL w','RR theta','RR w'};
 c1 = 1;
 for i = toPlot
     subplot(numel(toPlot),1,c1)
-    plot(xArr(i,:),'.-');
+    plot(rad2deg(xArr(i,:)),'.-');
     title(names{i});
     c1 = c1+1;
 end

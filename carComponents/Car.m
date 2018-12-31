@@ -184,7 +184,7 @@ classdef Car
             forces.FtireTotal = [Fx Fy Fz'];
             %all forces applied everywhere else: [Fx Fy Fz Rx Ry Rz]
 %             FapTotal = zeros(1,6);
-            FapTotal = [100 0 0 0 1 0]; %y direction is flipped
+            FapTotal = [0 -100 0 0 0 0]; %standard Y convention; applied in car frame
             forces.FapTotal = FapTotal;
         end
         
@@ -215,10 +215,13 @@ classdef Car
                      obj.l_r obj.t_f/2 ;   %tire 3
                      obj.l_r -obj.t_f/2]; %tire 4
             FtireTotal = forces.FtireTotal;
-            FapTotal = forces.FapTotal(:,1:3); %applied Fxyz
-            
-            xF = forces.FapTotal(:,4:6); %position vectors Xxyz
+            FapTotal = forces.FapTotal(:,1:3); %applied Fxyz: car frame
+            FapTotal(:,2) = -FapTotal(:,2);
+            xF = forces.FapTotal(:,4:6); %position vectors Xxyz: car frame
             psiMoments = 0;
+%             for i = 1:size(FapTotal,1)
+%                 psiMoments = psiMoments + det([Rtire(i,1:2);FtireTotal(i,1:2)]);
+%             end
             %add up rest of applied moments, using given position vectors
             %CW positive sign convention
             for i = 1:size(FapTotal,1)
