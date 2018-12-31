@@ -48,7 +48,10 @@ classdef Powertrain
             switch_gear_velocities(end) = obj.redline./obj.gears(end)/obj.final_drive*pi/30*obj.wheel_radius;
                         
             % finds lowest possible gear for given longitudinal velocity
-            current_gear = find(long_vel<switch_gear_velocities,1);
+            current_gear = find(long_vel< switch_gear_velocities,1);
+            if long_vel >= switch_gear_velocities(end) 
+                current_gear = numel(switch_gear_velocities);
+            end
             engine_rpm = (omega_3+omega_4)/2*obj.drivetrain_reduction(current_gear)*30/pi; %rpm      
             %engine_rpm = (omega_3+omega_4)/2*obj.final_drive(current_gear)*30/pi; %rpm          
         end            

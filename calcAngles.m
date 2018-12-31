@@ -1,4 +1,4 @@
-function [outputs, debugInfo] = calcAngles(car,state, Fap)
+function [outputs, FArr, debugInfo] = calcAngles(car,state, FArr,Fapplied)
 %Fap: 4x3 matrix: 
    %rows: 4 tires
    %columns: 3 components
@@ -22,16 +22,16 @@ p0d = state(4);
 n = round(TSmpc/TSdyn,0);
 dt = TSdyn;
 %unpack Fap matrix and duplicate over timesteps
-
 % applied forces approximated as constant over dynamics
-Fxap = Fap(:,1)*ones(1,n); 
-Fyap = Fap(:,2)*ones(1,n); 
-Fzap = Fap(:,3)*ones(1,n); 
+Fxap = FArr(:,1)*ones(1,n); 
+Fyap = FArr(:,2)*ones(1,n); 
+Fzap = FArr(:,3)*ones(1,n); 
 
 %state arrays
 theta = [t0 zeros(1,n-1)]; thetad = [t0d zeros(1,n-1)]; thetadd = zeros(1,n);
 phi = [p0 zeros(1,n-1)]; phid = [p0d zeros(1,n-1)]; phidd = zeros(1,n);
 % zcgdd = zeros(4,n); %not currently tracking zcgdd, need to
+
 
 %non-state arrays (not state variables but nice to keep track of)
 z = zeros(4,n); zd = zeros(4,n); 
@@ -59,23 +59,33 @@ r2d = @(t,td,p,pd) (hw-hcg)*t1DF(t,td,p,pd) - t2DF(t,td,p,pd)*ht/2 - hrc*t3DF(t,
 r3d = @(t,td,p,pd) -hcg*t1DF(t,td,p,pd) + t2DF(t,td,p,pd)*ht/2 - hrc*t3DF(t,td,p,pd);
 r4d = @(t,td,p,pd) -hcg*t1DF(t,td,p,pd) - t2DF(t,td,p,pd)*ht/2 - hrc*t3DF(t,td,p,pd);
 
+%vector from rotation point to car origin
+%"rotation point" is point about which moments are taken
+toCarOrigin = @(t,p) [car.l_f 0 -hrc]*[t1F(t,p) t2F(t,p) t3F(t,p)];
+
 %oscillation amplitude decreases with step size
 for i = 2:n+1
     tc = theta(i-1); tcd = thetad(i-1);
     pc = phi(i-1); pcd = phid(i-1);
     r = [r1(tc,pc) r2(tc,pc) r3(tc,pc) r4(tc,pc)];
-    dz = r + hrc*t3F(tc,pc); %add roll center height to get delta z
+    dz = r + hrc*t3F(tc,pc); %this adds roll center height to get delta z
     z(:,i-1) = dz(3,:); %take z components and store them
     rd = [r1d(tc,tcd,pc,pcd) r2d(tc,tcd,pc,pcd) r3d(tc,tcd,pc,pcd) r4d(tc,tcd,pc,pcd)];
     zd(:,i-1) = rd(3,:)'; %take z velocities and store them
     
     Fzs = -k*z(:,i-1) - c*zd(:,i-1); %forces from shocks, positive z: spring in tension
-    Fzt = Fzs + Fzap(:,i-1); %Ftotal: add to applied z forces
+    Fzt = Fzs - Fzap(:,i-1); %Ftotal: add to applied z forces
     FzArr(:,i-1) = Fzt;
     momentSum = 0;
-    for j = 1:4 %moments for all 4 tires; M = rxF
-        Fj = [Fxap(j,i-1); Fyap(j,i-1); Fzt(j)];
+    for j = 1:4 %moments for all 4 tires; M = rxF for CCW convention
+        Fj = [-Fxap(j,i-1); -Fyap(j,i-1); Fzt(j)]; 
         momentSum = momentSum + cross(r(:,j),Fj);
+    end
+    for j = 1:size(Fapplied,1) %applied forces
+        Fj = [Fapplied(j,1); Fapplied(j,2); Fapplied(j,3)];
+        rVec = Fapplied(j,4:6)*[t1F(tcd,pcd) t2F(tcd,pcd) t3F(tcd,pcd)]; %apply car basis vectors
+        rVec = rVec + toCarOrigin(tcd,pcd);
+        momentSum = momentSum + cross(rVec',-Fj);
     end
     phidd(i-1) = (1/Ixx)*(momentSum(1) + phid(i-1)*thetad(i-1)*sin(theta(i-1)))/cos(theta(i-1));
     thetadd(i-1) = (1/Iyy)*momentSum(2);
