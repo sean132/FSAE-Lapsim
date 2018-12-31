@@ -42,8 +42,8 @@ for i = 2:n
     fprintf("%d\n",i);
     state = [thetaArr(i-1); thetadArr(i-1); phiArr(i-1); phidArr(i-1)];
     [outputs,FArri] = calcAngles(car,state,FArr(:,:,i-1),Fapplied);
-    Fz = outputs.Fz(:,end); %vertical forces on 4 tires
-    [xdot, forces] = car.dynamics(xArr(:,i-1),uArr(:,i-1),Fz,"transient"); %add pitch/roll input for aero
+%     Fz = outputs.Fz(:,end); %vertical forces on 4 tires
+    [xdot, forces] = car.dynamics(xArr(:,i-1),uArr(:,i-1),FArri,"transient"); %add pitch/roll input for aero
     xArr(:,i) = xArr(:,i-1) + dt*xdot; %advance state
     FArr(:,:,i-1) =  forces.FtireTotal; %store total applied forces
     %calc new pitch,roll

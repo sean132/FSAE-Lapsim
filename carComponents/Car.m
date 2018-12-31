@@ -135,8 +135,29 @@ classdef Car
             Fx = [F_x1; F_x2; F_x3; F_x4];
             Fy = [F_y1; F_y2; F_y3; F_y4];
         end
-        
-        function [forces, Gr] = calcForces(obj,x,u,FzIn,mode)
+        function [Fx,Fy, F_xw] = tireForce2(obj,steer_angle,alpha,kappa,Fz)
+            %tire forces, but in a more standard coordinate system
+            % forces in tire frame of reference
+            F_xw1 = obj.tire.F_x(alpha(1),kappa(1),Fz(1)); 
+            F_yw1 = obj.tire.F_y(alpha(1),kappa(1),Fz(1));
+            F_xw2 = obj.tire.F_x(alpha(2),kappa(2),Fz(2));
+            F_yw2 = obj.tire.F_y(alpha(2),kappa(2),Fz(2));
+            F_xw = [F_xw1; F_xw2];
+
+            % forces in vehicle frame of reference
+            F_x1 = F_xw1*cos(steer_angle)+F_yw1*sin(steer_angle);
+            F_y1 = -F_xw1*sin(steer_angle)+F_yw1*cos(steer_angle);
+            F_x2 = F_xw2*cos(steer_angle)+F_yw2*sin(steer_angle);
+            F_y2 = -F_xw2*sin(steer_angle)+F_yw2*cos(steer_angle);
+            
+            F_x3 = obj.tire.F_x(alpha(3),kappa(3),Fz(3));
+            F_y3 = obj.tire.F_y(alpha(3),kappa(3),Fz(3));
+            F_x4 = obj.tire.F_x(alpha(4),kappa(4),Fz(4));
+            F_y4 = obj.tire.F_y(alpha(4),kappa(4),Fz(4));
+            Fx = [F_x1; F_x2; F_x3; F_x4];
+            Fy = [F_y1; F_y2; F_y3; F_y4];
+        end
+        function [forces, Gr] = calcForces(obj,x,u,FArr,mode)
             %takes spring-damper forces, adds powertrain, aero, tireXY
             steerAngle = u(1); %steering angle, radians
             throttle = u(2); %[-1,1] max braking to max throttle
@@ -154,7 +175,7 @@ classdef Car
                 Fz = ssForces(obj,longVel,yawRate,T);
                 Fz = Fz';
             elseif strcmp(mode,"transient")
-                Fz = FzIn; %uses Fz from input
+                Fz = FArr(1:4,3); %uses Fz from input
             else
                 error('no Fz provided');
             end
@@ -173,25 +194,29 @@ classdef Car
             k3 = (obj.R*x(12)/(x(3)+x(2)*obj.t_f/2))-1;
             k4 = (obj.R*x(14)/(x(3)-x(2)*obj.t_f/2))-1;
             kappa = [k1; k2; k3; k4];
-            [Fx,Fy, Fxw] = tireForce(obj,steerAngle,alpha,kappa,Fz);
+            [Fx,Fy, Fxw] = tireForce2(obj,steerAngle,alpha,kappa,Fz);
+            Rtire = [obj.l_f obj.t_f/2 0;   %tire 1
+                     obj.l_f -obj.t_f/2 0;   %tire 2
+                     obj.l_r obj.t_f/2 0;   %tire 3
+                     obj.l_r -obj.t_f/2 0]; %tire 4
+            Ftires = [Fx Fy Fz Rtire]; %total applied forces from tires
             
             forces = struct(); %store calculated forces
             forces.T = T; %tire powertrain torques 1-4
-%             forces.FzAero = FzAero
 
             forces.Fxw = Fxw;
             forces.Fx = Fx; %tire total x forces 1-4
             forces.Fy = Fy; %tire total y forces 1-4
             forces.Fz = Fz; %tire total z forces 1-4
             %this should be all forces applied to the tires of the car
-            forces.FtireTotal = [Fx Fy Fz];
+%             forces.FtireTotal = [Fx Fy Fz];
             %all forces applied everywhere else: [Fx Fy Fz Rx Ry Rz]
-            FapTotal = zeros(1,6);
+            FapTotal = Ftires;
 %             FapTotal = [0 -100 0 0 0 0]; %standard Y convention; applied in car frame
             forces.FapTotal = FapTotal;
         end
         
-        function [xdot, forces] = dynamics(obj,x,u,Fz,mode)
+        function [xdot, forces] = dynamics(obj,x,u,FArr,mode)
 %             1: yaw angle 2: yaw rate 3: long velocity 4: lat velocity
 %             5: Xcg 6: Ycg 
 %             7:  FL angular position 8:  FL angular velocity
@@ -202,49 +227,38 @@ classdef Car
 %             u(1): steering input u(2): throttle 
             longVel = x(3); %m/s
             latVel = x(4); %m/s
-            
-            [forces, Gr] = calcForces(obj,x,u,Fz,mode);
+            [forces, Gr] = calcForces(obj,x,u,FArr,mode);
             % Tire Slips
             beta = rad2deg(atan(latVel/longVel)); % vehicle slip angle in deg
-            Fax = 0; %aero drag
             
             Fx = forces.Fx;
-            Fy = forces.Fy;
             T = forces.T;
             
             Fxw = forces.Fxw;
-            Rtire = [obj.l_f obj.t_f/2 ;   %tire 1
-                     obj.l_f -obj.t_f/2;   %tire 2
-                     obj.l_r obj.t_f/2 ;   %tire 3
-                     obj.l_r -obj.t_f/2]; %tire 4
-            FtireTotal = forces.FtireTotal;
             FapTotal = forces.FapTotal(:,1:3); %applied Fxyz: car frame
-            FapTotal(:,2) = -FapTotal(:,2);
             xF = forces.FapTotal(:,4:6); %position vectors Xxyz: car frame
             psiMoments = 0;
-%             for i = 1:size(FapTotal,1)
-%                 psiMoments = psiMoments + det([Rtire(i,1:2);FtireTotal(i,1:2)]);
-%             end
-            %add up rest of applied moments, using given position vectors
-            %CW positive sign convention
+            %add up all applied moments, using given position vectors
             for i = 1:size(FapTotal,1)
-                psiMoments = psiMoments - det([xF(i,1:2);FapTotal(i,1:2)]);
+                psiMoments = psiMoments + det([xF(i,1:2);FapTotal(i,1:2)]);
             end
             xdot = zeros(14,1); 
+            %global->vehicle
+            rotMat = [cos(x(1)) sin(x(1)); 
+                     -sin(x(1)) cos(x(1))];
+            allForces = FapTotal(:,1:2); 
+            %forces in vehicle axes
+            sumA = sum(allForces,1)/obj.M;
+            %equiv to multiply by inverse: vehicle->global
+            xdot(3) = sumA(1);%yawrate*longVel term removed
+            xdot(4) = sumA(2);%yawrate*latVel term removed
+            vGlobal = rotMat\(x(3:4));
+            xdot(5) = vGlobal(1); %position, global coordinates
+            xdot(6) = vGlobal(2); %position, global coordinates
+            
             %yaw velocity
             xdot(1) = x(2);
-            %yaw accel: alteration from casanova: add additional yaw
-            %moments
-            xdot(2) = (psiMoments + (Fx(1)-Fx(2))*(obj.t_f/2) + (Fx(3)-Fx(4))*(obj.t_r/2) + (Fy(1)+Fy(2))*obj.l_f - (Fy(3)+Fy(4))*obj.l_r)/obj.I_zz;
-%             xdot(2) = (1/obj.I_zz)*psiMoments;
-            %CGx accel
-            xdot(3) = (sum(Fx)+ sum(FapTotal(:,1)))/obj.M + x(2)*x(4);
-            %CGy accel
-            xdot(4) = (sum(Fy) - sum(FapTotal(:,2)))/obj.M - x(2)*x(3);
-            %CGx velocity
-            xdot(5) = x(3)*cos(x(1))-x(4)*sin(x(1));
-            %CGy velocity
-            xdot(6) = x(3)*sin(x(1))+x(4)*cos(x(1));
+            xdot(2) = (1/obj.I_zz)*psiMoments;
             
             %tires: angular velocity, acceleration, 1-4
             xdot(7) = x(8);
