@@ -32,9 +32,9 @@ dt = car.TSmpc;
 g = 9.81;
 
 FArr = zeros(4,3,n); %4 tires, 3 components, n steps
-Fapplied = [0 0 -car.M*g -car.l_f 0 car.h_g]; %gravity, need to add cg height
-Fapplied = zeros(1,6);
-% Fapplied = [0 -1000 0 0 -1 0]; %1000 N upward at front axle
+% Fapplied = [0 0 -car.M*g -car.l_f 0 car.h_g]; %gravity, need to add cg height
+% Fapplied = zeros(1,6);
+Fapplied = [0 1000 0 0 0 1]; %1000 N upward at front axle
 %all functions take in Fapplied and FArr
 %all functions return FArr: 
 % FArr(:,2,:) = 500;

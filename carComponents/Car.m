@@ -84,7 +84,7 @@ classdef Car
             [T_1,T_2,T_3,T_4] = obj.powertrain.wheel_torques(engine_rpm, omega(3), omega(4), throttle, current_gear);
             T = [T_1,T_2,T_3,T_4];
             
-            Fz = ssForces(obj,longVel,yawRate,T);
+            [Fz, Fzvirtual] = ssForces(obj,long_vel,yaw_rate,T);
             
             % Tire Slips
             beta = atan(lat_vel/long_vel)*180/pi; % vehicle slip angle in deg
@@ -257,7 +257,7 @@ classdef Car
             xdot(13) = x(14);
             xdot(14) = ((T(4)-Fx(4)*obj.R)*(obj.Jw+obj.Jm*(Gr/2)^2) - (T(3)-Fx(3)*obj.R)*obj.Jm*(Gr/2)^2)*(1/denom);
         end
-        function Fz = ssForces(obj,longVel,yawRate,T)
+        function [Fz, Fzvirtual] = ssForces(obj,longVel,yawRate,T)
             Fz_front_static = (obj.M*9.81*obj.l_r+obj.aero.lift(longVel)*obj.aero.D_f)/obj.W_b;
             Fz_rear_static = (obj.M*9.81*obj.l_f+obj.aero.lift(longVel)*obj.aero.D_r)/obj.W_b;
             

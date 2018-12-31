@@ -23,7 +23,7 @@ car.Jm = 0; car.Jw = 1;
 steps = 800;
 xArr = zeros(numel(x1),steps);
 for i = 1:steps
-    x1dot = car.dynamics(x1,u);
+    x1dot = car.dynamics(x1,u,0,'steady-state');
     car.printState(x1,x1dot)
     x2 = x1 + dt*x1dot;
     xArr(:,i) = x1;
