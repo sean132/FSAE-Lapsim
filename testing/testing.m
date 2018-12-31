@@ -17,10 +17,10 @@ x1 = [0;
       v/r;
       0;
       v/r];
-u = [.1;.5];
+u = [.1;0];
 dt = .01;
 car.Jm = 0; car.Jw = 1;
-steps = 1000;
+steps = 400;
 xArr = zeros(numel(x1),steps);
 for i = 1:steps
     x1dot = car.dynamics(x1,u);
@@ -30,7 +30,7 @@ for i = 1:steps
     x1 = x2;
 end
 figure(1); clf
-toPlot = [3 8 10 12 14];
+toPlot = [1 3];
 names = {'yaw angle','yaw rate','long velo','lat velo','Xcg','Ycg','FL theta'...
     'FL w','FR theta','FR w','RL theta','RL w','RR theta','RR w'};
 c1 = 1;
@@ -40,9 +40,11 @@ for i = toPlot
     title(names{i});
     c1 = c1+1;
 end
-figure(2);clf
+figure(2);
 plot(xArr(5,:),xArr(6,:),'.-')
+hold on
 xlabel('xPos');ylabel('yPos');
+grid
 %% max lat accel testing
 clear
 car = testCar();

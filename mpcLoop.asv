@@ -9,7 +9,7 @@ car.TSmpc = .005;
 car.TSdyn = .001;
 car.Jm = 0; car.Jw = 1;
 
-n = 1000;
+n = 2000;
 phiArr = zeros(1,n);
 phidArr = zeros(1,n);
 thetaArr = zeros(1,n);
@@ -18,13 +18,13 @@ FArr = zeros(4,n,3); %3 components, n steps, 4 tires
 xArr = zeros(14,n);
 % steer = zeros(1,n);
 % steer = [-.01*ones(1,n/2) .01*ones(1,n/2)];
-steer = 
-throttle = [.1*ones(1,800) zeros(1,200)];
-% throttle = zeros(1,n);
+steer = .1*sin(linspace(0,2*pi,n));
+% throttle = [.1*ones(1,800) zeros(1,200)];
+throttle = zeros(1,n);
 uArr = [steer; throttle];
 
 x0 = zeros(14,1);
-v = 10;
+v = 20;
 x0(3) = v; %v0 = 10 m/s
 x0([8 10 12 14]) = v/car.R; %wheels at 10 m/s
 xArr(:,1) = x0;
@@ -42,7 +42,7 @@ for i = 2:n
     phiArr(i) = outputs.phi;
     phidArr(i) = outputs.phid;
 end
-ic = 500;
+ic = 1000;
 figure(123);clf
 plot(xArr(5,:),xArr(6,:));
 hold on
@@ -61,4 +61,10 @@ figure(1);clf
 plot(rad2deg(xArr(1,:)));
 legend('psi','Location','best');
 grid
+figure(2);clf
+plot(rad2deg(steer)) %deg
+title('steering angle');
+figure(3); clf
+plot(xArr(4,:));
+title('lat velocity');
 disp('done');
