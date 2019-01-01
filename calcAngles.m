@@ -1,4 +1,4 @@
-function [outputs, FArr, debugInfo] = calcAngles(car,state, FArr,Fapplied)
+function [angles, forces, debugInfo] = calcAngles(car,state, forces)
 %Fap: 4x3 matrix: 
    %rows: 4 tires
    %columns: 3 components
@@ -23,9 +23,7 @@ n = round(TSmpc/TSdyn,0);
 dt = TSdyn;
 %unpack Fap matrix and duplicate over timesteps
 % applied forces approximated as constant over dynamics
-Fxap = FArr(:,1)*ones(1,n); 
-Fyap = FArr(:,2)*ones(1,n); 
-Fzap = FArr(:,3)*ones(1,n); 
+Fapplied = forces.F;
 
 %state arrays
 theta = [t0 zeros(1,n-1)]; thetad = [t0d zeros(1,n-1)]; thetadd = zeros(1,n);
@@ -62,7 +60,7 @@ r4d = @(t,td,p,pd) -hcg*t1DF(t,td,p,pd) - t2DF(t,td,p,pd)*ht/2 - hrc*t3DF(t,td,p
 %vector from rotation point to car origin
 %"rotation point" is point about which moments are taken
 toCarOrigin = @(t,p) [car.l_f 0 -hrc]*[t1F(t,p) t2F(t,p) t3F(t,p)];
-
+Fzs = 0; %4x1 array of shock forces
 %oscillation amplitude decreases with step size
 for i = 2:n+1
     tc = theta(i-1); tcd = thetad(i-1);
@@ -74,17 +72,15 @@ for i = 2:n+1
     zd(:,i-1) = rd(3,:)'; %take z velocities and store them
     
     Fzs = -k*z(:,i-1) - c*zd(:,i-1); %forces from shocks, positive z: spring in tension
-    Fzt = Fzs + Fzap(:,i-1); %Ftotal: add to applied z forces
-    FzArr(:,i-1) = Fzt;
     momentSum = 0;
     for j = 1:4 %moments for all 4 tires; M = rxF for CCW convention
-        Fj = [Fxap(j,i-1); Fyap(j,i-1); Fzt(j)]; 
+        Fj = [0;0; Fzs(j)]; 
         momentSum = momentSum + cross(r(:,j),Fj);
     end
     for j = 1:size(Fapplied,1) %applied forces
         Fj = [Fapplied(j,1); Fapplied(j,2); Fapplied(j,3)];
         rVec = Fapplied(j,4:6)*[t1F(tcd,pcd) t2F(tcd,pcd) t3F(tcd,pcd)]; %apply car basis vectors
-        rVec = rVec + toCarOrigin(tcd,pcd);
+        rVec = rVec + toCarOrigin(tcd,pcd); %use car origin and moment point -> r vector
         momentSum = momentSum + cross(rVec',Fj);
     end
     phidd(i-1) = (1/Ixx)*(momentSum(1) + phid(i-1)*thetad(i-1)*sin(theta(i-1)))/cos(theta(i-1));
@@ -100,13 +96,14 @@ for i = 2:n+1
         theta(i) = theta(i-1) + dt*thetad(i-1);   
     end
 end
+forces.Ftires = Fzs;
 t = (1:n).*dt;
-outputs = struct();
-outputs.theta = theta(n);
-outputs.thetad = thetad(n);
-outputs.phi = phi(n);
-outputs.phid = phid(n);
-outputs.Fz = FzArr;
+angles = struct();
+angles.theta = theta(n);
+angles.thetad = thetad(n);
+angles.phi = phi(n);
+angles.phid = phid(n);
+angles.Fz = FzArr;
 debugInfo = struct();
 debugInfo.theta = theta;
 debugInfo.thetad = thetad;

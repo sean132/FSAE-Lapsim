@@ -31,26 +31,61 @@ xArr(:,1) = x0;
 dt = car.TSmpc;
 g = 9.81;
 
-FArr = zeros(4,3,n); %4 tires, 3 components, n steps
+FapTotal = cell(n); %applied forces at each step
+Fconstant = [0 0 0 0 0 1]; %1000 N upward at front axle
+for i = 1:n
+    forces = struct();
+    forces.T = 0;
+    forces.F = Fconstant;
+    forces.Ftires = 0;
+    forces.Fxw = 0;         %x forces in front wheels tire csys
+    forces.Fx = 0;
+    FapTotal{i} = forces;
+end
+% FArr = zeros(4,3,n); %4 tires, 3 components, n steps
 % Fapplied = [0 0 -car.M*g -car.l_f 0 car.h_g]; %gravity, need to add cg height
 % Fapplied = zeros(1,6);
-Fapplied = [0 1000 0 0 0 1]; %1000 N upward at front axle
+
 %all functions take in Fapplied and FArr
 %all functions return FArr: 
 % FArr(:,2,:) = 500;
 for i = 2:n
     fprintf("%d\n",i);
-    state = [thetaArr(i-1); thetadArr(i-1); phiArr(i-1); phidArr(i-1)];
-    [outputs,FArri] = calcAngles(car,state,FArr(:,:,i-1),Fapplied);
-%     Fz = outputs.Fz(:,end); %vertical forces on 4 tires
-    [xdot, forces] = car.dynamics(xArr(:,i-1),uArr(:,i-1),FArri,"transient"); %add pitch/roll input for aero
-    xArr(:,i) = xArr(:,i-1) + dt*xdot; %advance state
-    FArr(:,:,i-1) =  forces.FtireTotal; %store total applied forces
-    %calc new pitch,roll
+    angles = [thetaArr(i-1); thetadArr(i-1); phiArr(i-1); phidArr(i-1)];
+    forces1 = FapTotal{i-1};
+    x = xArr(:,i-1);
+    u = uArr(:,i-1);
+    
+    %calculate forces at arbitrary locations
+    %store them in populate forces.F
+    [forces2, Gr] = car.calcForces(x,u,forces1);
+    
+    %resolve forces to xyz forces at tires. 
+    %  -> Tire model needs z forces at tires
+    %calculate new theta/phi (outputs struct)
+    %populate forces.Ftires
+    %forces.Ftires is the z component of the force on each tire
+    %equal in magnitude to the force produced by the shock
+    % does not append to forces.F
+    [outputs,forces3] = calcAngles(car,angles,forces2);
+    
+    %calculate forces produced by the tires
+    % appends XYZ forces from tires to forces.F
+    % positive Z forces balance applied Z forces
+    forces4 = car.calcTireForces(x,u,forces3);
+    
+    % applies forces.F to the car to produce xdot
+    [xdot, forces5] = car.dynamics(x,u,forces4,Gr);
+    
+    %advance state
+    xArr(:,i) = xArr(:,i-1) + dt*xdot; 
+    
+    %store new pitch,roll
     thetaArr(i) = outputs.theta;
     thetadArr(i) = outputs.thetad;
     phiArr(i) = outputs.phi;
     phidArr(i) = outputs.phid;
+    FapTotal{i-1} = forces5; %store all applied forces
 end
 ic = 1000;
 figure(123);clf
