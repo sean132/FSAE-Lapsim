@@ -19,6 +19,7 @@ classdef Car
         aero
         powertrain
         tire
+        g = 9.81;
         
         Iyy
         Ixx   % needs to be about roll center
@@ -175,7 +176,7 @@ classdef Car
             yawRate = x(2); %rad/s
             longVel = x(3);
             latVel = x(4); %m/s
-            Fz = forces.Ftires;
+            Fz = forces.Ftires(:,3);
             alpha = zeros(4,1);
             % slip angles (small angle assumption)
             if longVel > 0
@@ -196,8 +197,8 @@ classdef Car
                      obj.l_r -obj.t_f/2 0]; %tire 4
                  
             %forces applied by tires to car
-            Ftires = [Fx Fy Fz Rtire]; 
-            forces.F = [forces.F; Ftires];
+            Ftires = [Fx Fy Fz Rtire];
+            forces.Ftires = Ftires;
             forces.Fxw = Fxw;
             forces.Fx = Fx;
         end
@@ -225,6 +226,10 @@ classdef Car
             for i = 1:size(FapTotal,1)
                 psiMoments = psiMoments + det([xF(i,1:2);FapTotal(i,1:2)]);
             end
+            Ftires = forces.Ftires;
+            for i = 1:size(Ftires,1)
+                psiMoments = psiMoments + det([Ftires(i,1:2);Ftires(i,4:5)]);
+            end
             xdot = zeros(14,1); 
             %global->vehicle
             rotMat = [cos(x(1)) sin(x(1)); 
@@ -233,8 +238,8 @@ classdef Car
             %forces in vehicle axes
             sumA = sum(allForces,1)/obj.M;
             %equiv to multiply by inverse: vehicle->global
-            xdot(3) = sumA(1);%yawrate*longVel term removed
-            xdot(4) = sumA(2);%yawrate*latVel term removed
+            xdot(3) = sumA(1)+x(2)*x(4);
+            xdot(4) = sumA(2)-x(2)*x(3);
             vGlobal = rotMat\(x(3:4));
             xdot(5) = vGlobal(1); %position, global coordinates
             xdot(6) = vGlobal(2); %position, global coordinates

@@ -1,7 +1,7 @@
 clear; clc
 setup_paths
 car = testCar();
-car.k = 100*4.45*39.37;
+car.k = 200*4.45*39.37;
 car.c = 500;
 car.Ixx = 60;
 car.Iyy = 82;
@@ -14,13 +14,15 @@ phiArr = zeros(1,n);
 phidArr = zeros(1,n);
 thetaArr = zeros(1,n);
 thetadArr = zeros(1,n);
+zArr = [car.h_rc zeros(1,n-1)]; %rotation axis height
+zdArr = zeros(1,n);
 
 xArr = zeros(14,n);
-steer = zeros(1,n);
-% steer = [-.01*ones(1,n/2) .01*ones(1,n/2)];
-% steer = .1*sin(linspace(0,2*pi,n));
-% throttle = [.1*ones(1,800) zeros(1,200)];
-throttle = .5*zeros(1,n);
+% steer = zeros(1,n);
+steerDeg = 2;
+steer = deg2rad(steerDeg)*ones(1,n);
+% throttle = zeros(1,n);
+throttle = 0*ones(1,n);
 uArr = [steer; throttle];
 
 x0 = zeros(14,1);
@@ -32,12 +34,18 @@ dt = car.TSmpc;
 g = 9.81;
 
 FapTotal = cell(n); %applied forces at each step
-Fconstant = [0 0 0 0 0 1]; %1000 N upward at front axle
+% Fxyz = [0 10 0];
+% Rxyz = [0 0 car.R];
+Rxyz = [0 0 car.h_g];
+Fg = [0 0 -car.M*g];
+% Fg = [0 0 0];
+Rg = [-car.l_f 0 car.h_rc];
+Fconstant = [Fg Rg]; %1000 N upward at front axle
 for i = 1:n
     forces = struct();
     forces.T = 0;
     forces.F = Fconstant;
-    forces.Ftires = 0;
+    forces.Ftires = zeros(4,6);
     forces.Fxw = 0;         %x forces in front wheels tire csys
     forces.Fx = 0;
     FapTotal{i} = forces;
@@ -50,8 +58,13 @@ end
 %all functions return FArr: 
 % FArr(:,2,:) = 500;
 for i = 2:n
+    if i == 1000
+        disp('hold');
+    end
     fprintf("%d\n",i);
-    angles = [thetaArr(i-1); thetadArr(i-1); phiArr(i-1); phidArr(i-1)];
+    angles = [thetaArr(i-1); thetadArr(i-1); 
+              phiArr(i-1); phidArr(i-1); 
+              zArr(i-1); zdArr(i-1)];
     forces1 = FapTotal{i-1};
     x = xArr(:,i-1);
     u = uArr(:,i-1);
@@ -59,23 +72,28 @@ for i = 2:n
     %calculate forces at arbitrary locations
     %store them in populate forces.F
     [forces2, Gr] = car.calcForces(x,u,forces1);
-    
-    %resolve forces to xyz forces at tires. 
-    %  -> Tire model needs z forces at tires
-    %calculate new theta/phi (outputs struct)
-    %populate forces.Ftires
-    %forces.Ftires is the z component of the force on each tire
-    %equal in magnitude to the force produced by the shock
-    % does not append to forces.F
-    [outputs,forces3] = calcAngles(car,angles,forces2);
+    %forces at t = i-1
     
     %calculate forces produced by the tires
     % appends XYZ forces from tires to forces.F
     % positive Z forces balance applied Z forces
-    forces4 = car.calcTireForces(x,u,forces3);
+    forces3 = car.calcTireForces(x,u,forces2);
+    %uses Ftires 
+    
+    
+    %resolve forces to xyz forces at tires. 
+    %  -> Tire model needs z forces at tires
+    %calculate new  theta/phi (outputs struct)
+    %populate forces.Ftires
+    %forces.Ftires is the z component of the force on each tire
+    %equal in magnitude to the force produced by the shock
+    % does not append to forces.F
+    [outputs,forces4,nextFz] = calcAngles(car,x,angles,forces3);
+    %outputs Ftires at TS = i
     
     % applies forces.F to the car to produce xdot
     [xdot, forces5] = car.dynamics(x,u,forces4,Gr);
+    %xdot at i-1
     
     %advance state
     xArr(:,i) = xArr(:,i-1) + dt*xdot; 
@@ -85,7 +103,15 @@ for i = 2:n
     thetadArr(i) = outputs.thetad;
     phiArr(i) = outputs.phi;
     phidArr(i) = outputs.phid;
+    zArr(i) = outputs.z;
+    zdArr(i) = outputs.zd;
     FapTotal{i-1} = forces5; %store all applied forces
+    nextF = FapTotal{i};
+    nextF.Ftires(:,3) = nextFz;
+    FapTotal{i} = nextF;
+    if i == 1000
+        disp('hold');
+    end
 end
 ic = 1000;
 figure(123);clf
@@ -96,7 +122,7 @@ title('XY Pos');grid
 xlabel('X Position');
 ylabel('Y Position');
 figure(456);clf
-plot(xArr(3,:));
+plot(sqrt(xArr(3,:).^2 + xArr(4,:).^2));
 title('speed');grid
 figure(789);clf
 plot(rad2deg(phiArr)); hold on
@@ -114,3 +140,5 @@ figure(3); clf
 plot(xArr(4,:));grid
 title('lat velocity');
 disp('done');
+fprintf("phi: %0.2f\n",rad2deg(phiArr(end-10)));
+fprintf("theta: %0.2f\n",rad2deg(thetaArr(end-10)));

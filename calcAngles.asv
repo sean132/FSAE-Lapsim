@@ -1,4 +1,4 @@
-function [angles, forces, nextFz, debugInfo] = calcAngles(car,x,state, forces)
+function [angles, forces, debugInfo] = calcAngles(car,x,state, forces)
 %Fap: 4x3 matrix: 
    %rows: 4 tires
    %columns: 3 components
@@ -92,8 +92,8 @@ for i = 2:n+1
         FzSum = FzSum + Fapplied(j,3);
     end
     
-    latAccelcg = -car.M*yawRate*latVel*(car.h_g-hrc);
-    phidd(i-1) = (1/Ixx)*(latAccelcg+momentSum(1) + phid(i-1)*thetad(i-1)*sin(theta(i-1)))/cos(theta(i-1));
+    latAccelcg = -car.M*
+    phidd(i-1) = (1/Ixx)*(momentSum(1) + phid(i-1)*thetad(i-1)*sin(theta(i-1)))/cos(theta(i-1));
     thetadd(i-1) = (1/Iyy)*momentSum(2);
     zRCdd(i-1) = (FzSum/car.M);
     %second phidd eqn should be redundant since psi set to zero. currently
@@ -109,7 +109,7 @@ for i = 2:n+1
         zRC(i) = zRC(i-1) + dt*zRCd(i-1);
     end
 end
-nextFz = FArr(:,n);
+forces.Ftires = FArr(:,n);
 t = (1:n).*dt;
 angles = struct();
 angles.theta = theta(n);

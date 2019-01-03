@@ -22,13 +22,11 @@ dt = .005;
 car.Jm = 0; car.Jw = 1;
 steps = 800;
 forcesInit = struct();
-forcesInit.Ftires(:,3) = car.M*car.g*ones(4,1);
-forcesInit.F = zeros(1,6);
+forces.Ftires(:,3) = car.M*car.g*ones(4,1);
 Gr = 10.6;
 xArr = zeros(numel(x1),steps);
 for i = 1:steps
-    [forces2, Gr] = car.calcForces(x1,u,forcesInit);
-    forces = car.calcTireForces(x1,u,forces2);
+    forces
     x1dot = car.dynamics(x1,u,forces,Gr);
     car.printState(x1,x1dot)
     x2 = x1 + dt*x1dot;

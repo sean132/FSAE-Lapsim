@@ -3,26 +3,40 @@ setup_paths
 clear; clc
 carCell = carConfig();
 car = carCell{1};
-car.k = 100*4.45*39.37;
-car.c = 500;
+car.k = 200*4.45*39.37;
+car.c = 700;
 car.Ixx = 60;
 car.Iyy = 82;
-car.TSmpc = 1;
+car.TSmpc = 2;
 car.TSdyn = .001;
 state = zeros(4,1);
 state(1) = 0;
 state(2) = 0;
 state(3) = 0;
 state(4) = 0;
-Fap = zeros(4,3);
-%x component
-% Fap(:,1) = (4.8*10^3)*(1/4.45)*ones(4,1);
-Fap(:,2) = car.M*2*9.81;
-%z component
-Fap(:,3) = -car.M*9.81./4*ones(4,1);
-[angles, debugInfo] = calcAngles(car,state,Fap);
+state(5) = car.h_rc;
+state(6) = 0;
+
+Fxyz = [0 0 0];
+Rxyz = [0 0 0];
+
+Fg = [0 0 -car.M*car.g];
+% Fg = zeros(1,3);
+Rg = [-car.l_f 0 car.h_g];
+R2 = [-car.W_b 0 0];
+Fconstant = [Fg Rg];
+forces = struct();
+forces.T = 0;
+forces.F = Fconstant;
+forces.Ftires = 0;
+forces.Fxw = 0;         %x forces in front wheels tire csys
+forces.Fx = 0;
+x(2) = 1;
+x(4) = 9.81;
+
+[angles, forces,debugInfo] = calcAngles(car,x,state,forces);
 figure(456);clf
-Fz = debugInfo.FzArr;
+Fz = debugInfo.FArr;
 t = debugInfo.t;
 z = debugInfo.z;
 phi = debugInfo.phi;
