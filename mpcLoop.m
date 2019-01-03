@@ -8,7 +8,7 @@ car.Iyy = 82;
 car.TSmpc = .005;
 car.TSdyn = .001;
 car.Jm = 0; car.Jw = 1;
-n = 2000;
+n = 8000;
 
 phiArr = zeros(1,n);
 phidArr = zeros(1,n);
@@ -19,10 +19,10 @@ zdArr = zeros(1,n);
 
 xArr = zeros(14,n);
 % steer = zeros(1,n);
-steerDeg = 2;
-steer = deg2rad(steerDeg)*ones(1,n);
+steerDeg = 5;
+steer = deg2rad(steerDeg)*[ones(1,n/2) -ones(1,n/2)];
 % throttle = zeros(1,n);
-throttle = 0*ones(1,n);
+throttle = 1*ones(1,n);
 uArr = [steer; throttle];
 
 x0 = zeros(14,1);

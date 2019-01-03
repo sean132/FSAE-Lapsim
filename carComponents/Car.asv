@@ -190,12 +190,12 @@ classdef Car
             k3 = (obj.R*x(12)/(x(3)+x(2)*obj.t_f/2))-1;
             k4 = (obj.R*x(14)/(x(3)-x(2)*obj.t_f/2))-1;
             kappa = [k1; k2; k3; k4];
-            [Fx,Fy, Fxw] = tireForce(obj,steerAngle,alpha,kappa,Fz);
+            [Fx,Fy, Fxw] = tireForceTransient(obj,steerAngle,alpha,kappa,Fz);
             Rtire = [obj.l_f obj.t_f/2 0;   %tire 1
                      obj.l_f -obj.t_f/2 0;   %tire 2
                      obj.l_r obj.t_f/2 0;   %tire 3
                      obj.l_r -obj.t_f/2 0]; %tire 4
-            forces.alpha = alpha;
+                 
             %forces applied by tires to car
             Ftires = [Fx Fy Fz Rtire];
             forces.Ftires = Ftires;
@@ -234,12 +234,12 @@ classdef Car
             %global->vehicle
             rotMat = [cos(x(1)) sin(x(1)); 
                      -sin(x(1)) cos(x(1))];
-            allForces = FapTotal(:,1:2)+Ftires(:,1:2); 
+            allForces = FapTotal(:,1:2); 
             %forces in vehicle axes
             sumA = sum(allForces,1)/obj.M;
             %equiv to multiply by inverse: vehicle->global
-            xdot(3) = sumA(1);%+x(2)*x(4);
-            xdot(4) = sumA(2);%-x(2)*x(3);
+            xdot(3) = sumA(1)+x(2)*x(4);
+            xdot(4) = sumA(2)-x(2)*x(3);
             vGlobal = rotMat\(x(3:4));
             xdot(5) = vGlobal(1); %position, global coordinates
             xdot(6) = vGlobal(2); %position, global coordinates

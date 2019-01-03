@@ -17,7 +17,7 @@ x1 = [0;
       v/r;
       0;
       v/r];
-u = [.01;0];
+u = [1;0];
 dt = .005;
 car.Jm = 0; car.Jw = 1;
 steps = 800;
@@ -25,12 +25,14 @@ forcesInit = struct();
 forcesInit.Ftires(:,3) = car.M*car.g*ones(4,1);
 forcesInit.F = zeros(1,6);
 Gr = 10.6;
+forcesArr = cell(steps);
 xArr = zeros(numel(x1),steps);
 for i = 1:steps
     [forces2, Gr] = car.calcForces(x1,u,forcesInit);
     forces = car.calcTireForces(x1,u,forces2);
     x1dot = car.dynamics(x1,u,forces,Gr);
-    car.printState(x1,x1dot)
+    forcesArr{i} = forces;
+%     car.printState(x1,x1dot)
     x2 = x1 + dt*x1dot;
     xArr(:,i) = x1;
     x1 = x2;
@@ -46,11 +48,26 @@ for i = toPlot
     title(names{i});
     c1 = c1+1;
 end
-figure(2);
+figure(2);clf
 plot(xArr(5,:),xArr(6,:),'.-')
 hold on
 xlabel('xPos');ylabel('yPos');
 grid
+figure(3);clf
+for i = 1:steps
+    forces = forcesArr{i};
+    plot(i,forces.alpha,'.');
+    hold on
+end
+figure(456);clf
+for i =1:steps
+    
+    plot(i,forces.Ftires(:,2),'.');
+    hold on
+end
+figure(3); title('alpha');
+figure(456); title('Fy');
+disp('done');
 %% max lat accel testing
 clear
 car = testCar();
