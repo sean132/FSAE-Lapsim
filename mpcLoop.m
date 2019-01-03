@@ -1,14 +1,14 @@
 clear; clc
 setup_paths
 car = testCar();
-car.k = 200*4.45*39.37;
-car.c = 500;
+car.k = 100*4.45*39.37;
+car.c = 40;
 car.Ixx = 60;
 car.Iyy = 82;
-car.TSmpc = .005;
+car.TSmpc = .003;
 car.TSdyn = .001;
 car.Jm = 0; car.Jw = 1;
-n = 8000;
+n = 16000;
 
 phiArr = zeros(1,n);
 phidArr = zeros(1,n);
@@ -19,10 +19,10 @@ zdArr = zeros(1,n);
 
 xArr = zeros(14,n);
 % steer = zeros(1,n);
-steerDeg = 5;
-steer = deg2rad(steerDeg)*[ones(1,n/2) -ones(1,n/2)];
+steerDeg = 20;
+steer = deg2rad(steerDeg)*[ones(1,n/4) ones(1,2*n/4) ones(1,n/4)];
 % throttle = zeros(1,n);
-throttle = 1*ones(1,n);
+throttle = 0*ones(1,n);
 uArr = [steer; throttle];
 
 x0 = zeros(14,1);
@@ -61,7 +61,7 @@ for i = 2:n
     if i == 1000
         disp('hold');
     end
-    fprintf("%d\n",i);
+%     fprintf("%d\n",i);
     angles = [thetaArr(i-1); thetadArr(i-1); 
               phiArr(i-1); phidArr(i-1); 
               zArr(i-1); zdArr(i-1)];
@@ -97,7 +97,7 @@ for i = 2:n
     
     %advance state
     xArr(:,i) = xArr(:,i-1) + dt*xdot; 
-    
+    fprintf("%0.2f\n",xdot(4));
     %store new pitch,roll
     thetaArr(i) = outputs.theta;
     thetadArr(i) = outputs.thetad;
@@ -114,7 +114,7 @@ for i = 2:n
     end
 end
 ic = 1000;
-figure(123);clf
+figure(123);
 plot(xArr(5,:),xArr(6,:));
 hold on
 plot(xArr(5,ic),xArr(6,ic),'o');
@@ -124,7 +124,7 @@ ylabel('Y Position');
 figure(456);clf
 plot(sqrt(xArr(3,:).^2 + xArr(4,:).^2));
 title('speed');grid
-figure(789);clf
+figure(789);
 plot(rad2deg(phiArr)); hold on
 plot(rad2deg(thetaArr));grid
 title('phi and theta, deg');
@@ -136,8 +136,8 @@ grid
 figure(2);clf
 plot(rad2deg(steer)) %deg
 title('steering angle');grid
-figure(3); clf
-plot(xArr(4,:));grid
+figure(3);
+plot(xArr(4,:));grid;hold on
 title('lat velocity');
 disp('done');
 fprintf("phi: %0.2f\n",rad2deg(phiArr(end-10)));

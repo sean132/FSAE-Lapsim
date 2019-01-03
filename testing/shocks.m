@@ -34,8 +34,8 @@ forces.Fx = 0;
 x(2) = 1;
 x(4) = 9.81;
 
-[angles, forces,debugInfo] = calcAngles(car,x,state,forces);
-figure(456);clf
+[angles, forces,nextFz,debugInfo] = calcAngles(car,x,state,forces);
+figure(456);
 Fz = debugInfo.FArr;
 t = debugInfo.t;
 z = debugInfo.z;

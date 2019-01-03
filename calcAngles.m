@@ -92,10 +92,10 @@ for i = 2:n+1
         FzSum = FzSum + Fapplied(j,3);
     end
     
-    latAccelcg = -car.M*yawRate*latVel*(car.h_g-hrc);
+    latAccelcg = car.M*yawRate*latVel*(car.h_g-hrc);
     phidd(i-1) = (1/Ixx)*(latAccelcg+momentSum(1) + phid(i-1)*thetad(i-1)*sin(theta(i-1)))/cos(theta(i-1));
     thetadd(i-1) = (1/Iyy)*momentSum(2);
-    zRCdd(i-1) = (FzSum/car.M);
+    zRCdd(i-1) = (FzSum/m);
     %second phidd eqn should be redundant since psi set to zero. currently
     %all zeros,need to figure out why
 %     phidd2(i-1) = -(momentSum(3) - phid(i-1)*thetad(i-1)*cos(theta(i-1)));
