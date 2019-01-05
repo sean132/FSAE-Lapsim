@@ -2,15 +2,16 @@ function animateCar(car,xArr)
 xyArr = [xArr(5,:); xArr(6,:)];
 psiArr = xArr(1,:);
 
-Ts = .1; %pause time
-rate = 10; %timesteps to skip
-figNum = 10;
+rate = 5; %timesteps to skip
+figNum = 123;
 lineHandle = 0;
 figure(figNum); clf
+plot(xyArr(1,:),xyArr(2,:),'b');
+hold on
 for i = 1:rate:size(xyArr,2)
     lineHandle = drawCar(figNum,lineHandle,car,xyArr(:,i),psiArr(i),i);
-    xlim([-20 20]);
-    ylim([-20 20]);
+    xlim([-10 30]);
+    ylim([-50 10]);
     axis square
-    pause(Ts);
+    pause(rate*car.TSmpc);
 end
