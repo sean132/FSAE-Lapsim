@@ -1,0 +1,13 @@
+function animateCar(car,xArr)
+xyArr = [xArr(5,:); xArr(6,:)];
+psiArr = xArr(1,:);
+
+Ts = .1; %pause time
+rate = 10; %timesteps to skip
+figNum = 10;
+lineHandle = 0;
+for i = 1:rate:size(xyArr,2)
+    lineHandle = drawCar(figNum,lineHandle,car,xyArr(:,i),psi(i),i);
+    xlim(-1
+    pause(Ts);
+end

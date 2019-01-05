@@ -2,7 +2,7 @@ clear; clc
 setup_paths
 car = testCar();
 car.k = 100*4.45*39.37;
-car.c = 40;
+car.c = 60;
 car.Ixx = 60;
 car.Iyy = 82;
 car.TSmpc = .003;
