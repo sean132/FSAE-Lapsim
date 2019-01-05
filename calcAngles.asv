@@ -93,7 +93,7 @@ for i = 2:n+1
     end
     
     latAccelcg = car.M*yawRate*abs(latVel)*(car.h_g-hrc);
-    %abs val here is a kludge to make the car roll the correct direction
+    %abs val here is a kludge to make the car roll 
     phidd(i-1) = (1/Ixx)*(latAccelcg+momentSum(1) + phid(i-1)*thetad(i-1)*sin(theta(i-1)))/cos(theta(i-1));
     thetadd(i-1) = (1/Iyy)*momentSum(2);
     zRCdd(i-1) = (FzSum/m);

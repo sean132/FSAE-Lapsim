@@ -20,13 +20,15 @@ x1 = [0;
 u = [.5;0];
 dt = .001;
 car.Jm = 0; car.Jw = 1;
-steps = 12800;
+steps = 6400;
 forcesInit = struct();
 forcesInit.Ftires(:,3) = car.M*car.g*.25*ones(4,1);
 forcesInit.F = zeros(1,6);
 Gr = 10.6;
 forcesArr = cell(steps);
 xArr = zeros(numel(x1),steps);
+alphaArr = zeros(4,steps);
+FyArr = zeros(4,steps);
 for i = 1:steps
     [forces2, Gr] = car.calcForces(x1,u,forcesInit);
     forces = car.calcTireForces(x1,u,forces2);
@@ -39,6 +41,8 @@ for i = 1:steps
     end
     x1dot = car.dynamics(x1,u,forces,Gr);
     forcesArr{i} = forces;
+    alphaArr(:,i) = forces.alpha;
+    FyArr(:,i) = forces.F(:,2);
 %     car.printState(x1,x1dot)
     x2 = x1 + dt*x1dot;
     xArr(:,i) = x1;
@@ -60,20 +64,20 @@ plot(xArr(5,:),xArr(6,:),'.-')
 hold on
 xlabel('xPos');ylabel('yPos');
 grid
-% figure(3);clf
-% for i = 1:steps
-%     forces = forcesArr{i};
-%     plot(i,forces.alpha,'.');
-%     hold on
-% end
-% figure(456);clf
-% for i =1:steps
-%     
-%     plot(i,forces.Ftires(:,2),'.');
-%     hold on
-% end
-% figure(3); title('alpha');
-% figure(456); title('Fy');
+figure(3);clf
+for i = 1:4
+    plot(rad2deg(alphaArr(i,:)));
+    hold on
+end
+legend('1','2','3','4');
+title('alpha');
+figure(456);clf
+for i = 1:4
+    plot(FyArr(i,:));
+    hold on
+end
+legend('1','2','3','4');
+title('Fy');
 disp('done');
 %% max lat accel testing
 clear
