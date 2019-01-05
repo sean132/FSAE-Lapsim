@@ -193,8 +193,8 @@ classdef Car
             [Fx,Fy, Fxw] = tireForce(obj,steerAngle,alpha,kappa,Fz);
             Rtire = [obj.l_f obj.t_f/2 0;   %tire 1
                      obj.l_f -obj.t_f/2 0;   %tire 2
-                     obj.l_r obj.t_f/2 0;   %tire 3
-                     obj.l_r -obj.t_f/2 0]; %tire 4
+                     -obj.l_r obj.t_f/2 0;   %tire 3
+                     -obj.l_r -obj.t_f/2 0]; %tire 4
             forces.alpha = alpha;
             %forces applied by tires to car
             Ftires = [Fx Fy Fz Rtire];
@@ -224,11 +224,11 @@ classdef Car
             psiMoments = 0;
             %add up all applied moments, using given position vectors
             for i = 1:size(FapTotal,1)
-                psiMoments = psiMoments + det([xF(i,1:2);FapTotal(i,1:2)]);
+                psiMoments = psiMoments - det([xF(i,1:2);FapTotal(i,1:2)]);
             end
             Ftires = forces.Ftires;
             for i = 1:size(Ftires,1)
-                psiMoments = psiMoments + det([Ftires(i,1:2);Ftires(i,4:5)]);
+                psiMoments = psiMoments - det([Ftires(i,1:2);Ftires(i,4:5)]);
             end
             xdot = zeros(14,1); 
             %global->vehicle
