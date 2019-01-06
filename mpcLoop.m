@@ -1,7 +1,7 @@
 clear; clc
 setup_paths
 car = testCar();
-car.k = 100*4.45*39.37;
+car.k = 200*4.45*39.37;
 car.c = 60;
 car.Ixx = 60;
 car.Iyy = 82;
@@ -17,17 +17,19 @@ thetaArr = zeros(1,n);
 thetadArr = zeros(1,n);
 zArr = [car.h_rc zeros(1,n-1)]; %rotation axis height
 zdArr = zeros(1,n);
+FzArr = zeros(4,n);
 
 xArr = zeros(14,n);
 % steer = zeros(1,n);
-steerDeg = -25;
-steer = deg2rad(steerDeg)*[ones(1,n/4) -ones(1,2*n/4) ones(1,n/4)];
+steerDeg = 15;
+steer = deg2rad(steerDeg)*[ones(1,n/4) ones(1,2*n/4) ones(1,n/4)];
 % throttle = zeros(1,n);
-throttle = 0*ones(1,n);
+% throttle = [0*ones(1,n/2) 1*ones(1,n/4) -1*ones(1,n/4)];
+throttle = zeros(1,n);
 uArr = [steer; throttle];
 
 x0 = zeros(14,1);
-v = 20;
+v = 10;
 x0(3) = v; %v0 = 10 m/s
 x0([8 10 12 14]) = v/car.R; %wheels at 10 m/s
 xArr(:,1) = x0;
@@ -106,16 +108,18 @@ for i = 2:n
     phidArr(i) = outputs.phid;
     zArr(i) = outputs.z;
     zdArr(i) = outputs.zd;
+    FzArr(:,i) = forces5.Ftires(:,3);
+    
     FapTotal{i-1} = forces5; %store all applied forces
     nextF = FapTotal{i};
     nextF.Ftires(:,3) = nextFz;
     FapTotal{i} = nextF;
-    if i == 1000
+    if i == 4200
         disp('hold');
     end
 end
 ic = 1000;
-figure(123);
+figure(123);clf
 plot(xArr(5,:),xArr(6,:));
 hold on
 plot(xArr(5,ic),xArr(6,ic),'o');
@@ -125,7 +129,7 @@ ylabel('Y Position');
 figure(456);clf
 plot(sqrt(xArr(3,:).^2 + xArr(4,:).^2));
 title('speed');grid
-figure(789);
+figure(789);clf
 plot(rad2deg(phiArr)); hold on
 plot(rad2deg(thetaArr));grid
 title('phi and theta, deg');
@@ -137,9 +141,14 @@ grid
 figure(2);clf
 plot(rad2deg(steer)) %deg
 title('steering angle');grid
-figure(3);
-plot(xArr(4,:));grid;hold on
-title('lat velocity');
+figure(3);clf
+for i =1:4
+    plot(FzArr(i,:));hold on
+end
+grid
+title('Fz'); legend('1','2','3','4');
+% plot(xArr(4,:));grid;hold on
+% title('lat velocity');
 disp('done');
 fprintf("phi: %0.2f\n",rad2deg(phiArr(end-10)));
 fprintf("theta: %0.2f\n",rad2deg(thetaArr(end-10)));

@@ -15,7 +15,9 @@ Ixx = car.Ixx;
 Iyy = car.Iyy;
 
 yawRate = x(2);
+longVel = x(3);
 latVel = x(4);
+
 
 t0 = state(1);
 t0d = state(2);
@@ -30,6 +32,7 @@ dt = TSdyn;
 %unpack Fap matrix and duplicate over timesteps
 % applied forces approximated as constant over dynamics
 Fapplied = forces.F;
+Fapplied = [Fapplied; forces.Ftires];
 
 %state arrays
 theta = [t0 zeros(1,n-1)]; thetad = [t0d zeros(1,n-1)]; thetadd = zeros(1,n);
@@ -92,10 +95,11 @@ for i = 2:n+1
         FzSum = FzSum + Fapplied(j,3);
     end
     
-    latAccelcg = car.M*yawRate*abs(latVel)*(car.h_g-hrc);
-    %abs val here is a kludge to make the car roll the correct direction
+    latAccelcg = -car.M*yawRate*longVel*(car.h_g-hrc);
+    longAccelcg = car.M*yawRate*latVel*(car.h_g-hrc);
+    
     phidd(i-1) = (1/Ixx)*(latAccelcg+momentSum(1) + phid(i-1)*thetad(i-1)*sin(theta(i-1)))/cos(theta(i-1));
-    thetadd(i-1) = (1/Iyy)*momentSum(2);
+    thetadd(i-1) = (1/Iyy)*(longAccelcg+momentSum(2));
     zRCdd(i-1) = (FzSum/m);
     %second phidd eqn should be redundant since psi set to zero. currently
     %all zeros,need to figure out why
