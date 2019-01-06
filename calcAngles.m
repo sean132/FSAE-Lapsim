@@ -97,7 +97,6 @@ for i = 2:n+1
     
     latAccelcg = -car.M*yawRate*longVel*(car.h_g-hrc);
     longAccelcg = car.M*yawRate*latVel*(car.h_g-hrc);
-    
     phidd(i-1) = (1/Ixx)*(latAccelcg+momentSum(1) + phid(i-1)*thetad(i-1)*sin(theta(i-1)))/cos(theta(i-1));
     thetadd(i-1) = (1/Iyy)*(longAccelcg+momentSum(2));
     zRCdd(i-1) = (FzSum/m);

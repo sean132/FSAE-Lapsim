@@ -1,7 +1,7 @@
 clear; clc
 setup_paths
 car = testCar();
-car.k = 200*4.45*39.37;
+car.k = 100*4.45*39.37;
 car.c = 60;
 car.Ixx = 60;
 car.Iyy = 82;
@@ -21,7 +21,7 @@ FzArr = zeros(4,n);
 
 xArr = zeros(14,n);
 % steer = zeros(1,n);
-steerDeg = 15;
+steerDeg = 10;
 steer = deg2rad(steerDeg)*[ones(1,n/4) ones(1,2*n/4) ones(1,n/4)];
 % throttle = zeros(1,n);
 % throttle = [0*ones(1,n/2) 1*ones(1,n/4) -1*ones(1,n/4)];
@@ -29,7 +29,7 @@ throttle = zeros(1,n);
 uArr = [steer; throttle];
 
 x0 = zeros(14,1);
-v = 10;
+v = 20;
 x0(3) = v; %v0 = 10 m/s
 x0([8 10 12 14]) = v/car.R; %wheels at 10 m/s
 xArr(:,1) = x0;
