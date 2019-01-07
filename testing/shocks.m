@@ -1,3 +1,4 @@
+close all
 %% package into function&test
 setup_paths
 clear; clc

@@ -1,7 +1,7 @@
 %% dynamics model testing
 clear; clc
 car = testCar();
-v = 10;
+v = 5;
 r = car.R;
 x1 = [0;
       0;
@@ -17,10 +17,11 @@ x1 = [0;
       v/r;
       0;
       v/r];
-u = [.5;0];
+sA = deg2rad(10);
+u = [sA;0];
 dt = .001;
 car.Jm = 0; car.Jw = 1;
-steps = 6400;
+steps = 10800;
 forcesInit = struct();
 forcesInit.Ftires(:,3) = car.M*car.g*.25*ones(4,1);
 forcesInit.F = zeros(1,6);
@@ -35,14 +36,14 @@ for i = 1:steps
 %     forces.Ftires(:,2) = -forces.Ftires(:,2);
     forces.Ftires
     if mod(i,100) == 0
-        plot(x1(5),x1(6),'o');
-        hold on
-        i
+%         plot(x1(5),x1(6),'o');
+%         hold on
+%         i
     end
     x1dot = car.dynamics(x1,u,forces,Gr);
     forcesArr{i} = forces;
     alphaArr(:,i) = forces.alpha;
-    FyArr(:,i) = forces.F(:,2);
+    FyArr(:,i) = forces.Ftires(:,2);
 %     car.printState(x1,x1dot)
     x2 = x1 + dt*x1dot;
     xArr(:,i) = x1;
@@ -61,6 +62,7 @@ for i = toPlot
 end
 figure(2);clf
 plot(xArr(5,:),xArr(6,:),'.-')
+axis square
 hold on
 xlabel('xPos');ylabel('yPos');
 grid

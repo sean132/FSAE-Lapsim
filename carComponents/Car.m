@@ -238,8 +238,8 @@ classdef Car
             %forces in vehicle axes
             sumA = sum(allForces,1)/obj.M;
             %equiv to multiply by inverse: vehicle->global
-            xdot(3) = sumA(1);%+x(2)*x(4);
-            xdot(4) = sumA(2);%-x(2)*x(3);
+            xdot(3) = sumA(1)-x(2)*x(4); %long accel
+            xdot(4) = sumA(2)+x(2)*x(3); %lat accel
             vGlobal = rotMat\(x(3:4));
             xdot(5) = vGlobal(1); %position, global coordinates
             xdot(6) = vGlobal(2); %position, global coordinates
