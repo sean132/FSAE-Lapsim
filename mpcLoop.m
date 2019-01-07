@@ -21,7 +21,7 @@ FzArr = zeros(4,n);
 
 xArr = zeros(14,n);
 % steer = zeros(1,n);
-steerDeg = 10;
+steerDeg = 1;
 steer = deg2rad(steerDeg)*[ones(1,n/4) ones(1,2*n/4) ones(1,n/4)];
 % throttle = zeros(1,n);
 % throttle = [0*ones(1,n/2) 1*ones(1,n/4) -1*ones(1,n/4)];
@@ -97,10 +97,13 @@ for i = 2:n
     % applies forces.F to the car to produce xdot
     [xdot, forces5] = car.dynamics(x,u,forces4,Gr);
     %xdot at i-1
-    
     %advance state
     xArr(:,i) = xArr(:,i-1) + dt*xdot; 
-    fprintf("%0.2f\n",xdot(4));
+    if xArr(3,i) <= 0
+        disp(i)
+        break
+    end
+%     fprintf("%0.2f\n",xdot(4));
     %store new pitch,roll
     thetaArr(i) = outputs.theta;
     thetadArr(i) = outputs.thetad;
