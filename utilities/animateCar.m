@@ -7,8 +7,8 @@ figNum = 123;
 lineHandle = 0;
 figure(figNum); clf
 plot(xyArr(1,:),xyArr(2,:),'b');
-xlim(1.2*[min(xyArr(1,:)) max(xyArr(1,:))]);
-ylim(1.2*[min(xyArr(2,:)) max(xyArr(2,:))]);
+xlim(1.2*[min(min(xyArr))-1 1+max(max(xyArr))]);
+ylim(1.2*[min(min(xyArr))-1 1+max(max(xyArr))]);
 hold on
 for i = 1:rate:size(xyArr,2)
     lineHandle = drawCar(figNum,lineHandle,car,xyArr(:,i),psiArr(i),i);

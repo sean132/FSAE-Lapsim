@@ -32,7 +32,12 @@ dt = TSdyn;
 %unpack Fap matrix and duplicate over timesteps
 % applied forces approximated as constant over dynamics
 Fapplied = forces.F;
-Fapplied = [Fapplied; forces.Ftires];
+tireForceXY = forces.Ftires;
+tireForceXY(:,3) = 0;
+% tireForceXY = -tireForceXY;
+Fapplied = [Fapplied; tireForceXY];
+% force and moment balances take the applied forces (Fapplied) and the xy
+% components of the tire forces (since the z component is the shocks)
 
 %state arrays
 theta = [t0 zeros(1,n-1)]; thetad = [t0d zeros(1,n-1)]; thetadd = zeros(1,n);
@@ -97,11 +102,12 @@ for i = 2:n+1
     
     latAccelcg = -car.M*yawRate*longVel*(car.h_g-hrc);
     longAccelcg = car.M*yawRate*latVel*(car.h_g-hrc);
+%     latAccelcg = 0;
+%     longAccelcg = 0;
     phidd(i-1) = (1/Ixx)*(latAccelcg+momentSum(1) + phid(i-1)*thetad(i-1)*sin(theta(i-1)))/cos(theta(i-1));
     thetadd(i-1) = (1/Iyy)*(longAccelcg+momentSum(2));
     zRCdd(i-1) = (FzSum/m);
-    %second phidd eqn should be redundant since psi set to zero. currently
-    %all zeros,need to figure out why
+    %second phidd eqn should be redundant since psi set to zero
 %     phidd2(i-1) = -(momentSum(3) - phid(i-1)*thetad(i-1)*cos(theta(i-1)));
     if i <= n
         %state evolution for angles

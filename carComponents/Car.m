@@ -203,7 +203,8 @@ classdef Car
                      -obj.l_r -obj.t_f/2 0]; %tire 4
             forces.alpha = alphaR;
             %forces applied by tires to car
-            Ftires = [-Fx -Fy Fz Rtire];
+%             Ftires = [-Fx -Fy Fz Rtire];
+            Ftires = [Fx Fy Fz Rtire];
             forces.Ftires = Ftires;
             forces.Fxw = Fxw;
             forces.Fx = Fx;
@@ -235,7 +236,7 @@ classdef Car
                 psiMoments = psiMoments + det([xF(i,1:2);FapTotal(i,1:2)]);
             end
             Ftires = forces.Ftires(:,1:3);
-            Ftires(:,1:2) = -Ftires(:,1:2);
+%             Ftires(:,1:2) = -Ftires(:,1:2);
             rTires = forces.Ftires(:,4:6);
             for i = 1:size(Ftires,1)
                 psiMoments = psiMoments + det([rTires(i,1:2);Ftires(i,1:2)]);
