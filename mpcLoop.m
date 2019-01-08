@@ -21,11 +21,11 @@ FzArr = zeros(4,n);
 
 xArr = zeros(14,n);
 % steer = zeros(1,n);
-steerDeg = 5;
+steerDeg = 0;
 steer = deg2rad(steerDeg)*[zeros(1,n/4) ones(1,3*n/4)];
 % throttle = zeros(1,n);
 % throttle = [0*ones(1,n/2) 1*ones(1,n/4) -1*ones(1,n/4)];
-throttle = zeros(1,n);
+throttle = [zeros(1,n/4) ones(1,2*n/4) -ones(1,n/4)];
 uArr = [steer; throttle];
 
 x0 = zeros(14,1);
@@ -43,14 +43,14 @@ Rxyz = [0 0 car.h_g];
 Fg = [0 0 -car.M*g];
 % Fg = [0 0 0];
 Rg = [-car.l_f 0 car.h_rc];
-Fconstant = [Fg Rg]; %1000 N upward at front axle
+Fconstant = [Fg Rg]; 
 for i = 1:n
     forces = struct();
-    forces.T = 0;
-    forces.F = Fconstant;
-    forces.Ftires = zeros(4,6);
+    forces.T = 0; %wheel torques
+    forces.F = Fconstant; %applied forces
+    forces.Ftires = zeros(4,6); %forces applied by tires
     forces.Fxw = 0;         %x forces in front wheels tire csys
-    forces.Fx = 0;
+    forces.Fx = 0;          %x forces, kept for compatibility
     FapTotal{i} = forces;
 end
 % FArr = zeros(4,3,n); %4 tires, 3 components, n steps
