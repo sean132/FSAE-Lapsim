@@ -152,9 +152,9 @@ classdef Car
             F_y2 = F_xw2*sin(steer_angle)+F_yw2*cos(steer_angle);
             
             F_x3 = obj.tire.F_x(alpha(3),kappa(3),Fz(3));
-            F_y3 = -obj.tire.F_y(alpha(3),kappa(3),Fz(3));
+            F_y3 = obj.tire.F_y(alpha(3),kappa(3),Fz(3));
             F_x4 = obj.tire.F_x(alpha(4),kappa(4),Fz(4));
-            F_y4 = -obj.tire.F_y(alpha(4),kappa(4),Fz(4));
+            F_y4 = obj.tire.F_y(alpha(4),kappa(4),Fz(4));
             Fx = [F_x1; F_x2; F_x3; F_x4];
             Fy = [F_y1; F_y2; F_y3; F_y4];
         end
@@ -180,28 +180,30 @@ classdef Car
             alphaR = zeros(4,1);
             % slip angles (small angle assumption)
             if longVel > 0
-                alphaR(1) = steerAngle+atan((latVel+obj.l_f*yawRate)/(longVel-yawRate*obj.t_f/2));
-                alphaR(2) = steerAngle+atan((latVel+obj.l_f*yawRate)/(longVel+yawRate*obj.t_f/2));
-                alphaR(3) = atan((latVel-obj.l_r*yawRate)/(longVel-yawRate*obj.t_r/2));
-                alphaR(4) = atan((latVel-obj.l_r*yawRate)/(longVel+yawRate*obj.t_r/2));    
+                alphaR(1) = steerAngle-atan((latVel+obj.l_f*yawRate)/abs(longVel-yawRate*obj.t_f/2));
+                alphaR(2) = steerAngle-atan((latVel+obj.l_f*yawRate)/abs(longVel+yawRate*obj.t_f/2));
+                alphaR(3) = -atan((latVel-obj.l_r*yawRate)/abs(longVel-yawRate*obj.t_r/2));
+                alphaR(4) = -atan((latVel-obj.l_r*yawRate)/abs(longVel+yawRate*obj.t_r/2));
+                alphaR = -alphaR;
                 alphaD = rad2deg(alphaR);
             else
-                error('negative speed');
+                alphaR = zeros(4,1);
+                alphaD = alphaR;
             end
-            k1 = (obj.R*x(8)/(x(3)+x(2)*obj.t_f/2))-1;
-            k2 = (obj.R*x(10)/(x(3)-x(2)*obj.t_f/2))-1;
-            k3 = (obj.R*x(12)/(x(3)+x(2)*obj.t_f/2))-1;
-            k4 = (obj.R*x(14)/(x(3)-x(2)*obj.t_f/2))-1;
+            k1 = (obj.R*x(8)/(x(3)-x(2)*obj.t_f/2))-1;
+            k2 = (obj.R*x(10)/(x(3)+x(2)*obj.t_f/2))-1;
+            k3 = (obj.R*x(12)/(x(3)-x(2)*obj.t_f/2))-1;
+            k4 = (obj.R*x(14)/(x(3)+x(2)*obj.t_f/2))-1;
             kappa = [k1; k2; k3; k4];
-            [Fx,Fy, Fxw] = tireForceTransient(obj,steerAngle,alphaD,kappa,Fz);
-            Fy = -Fy;
+            [Fx,Fy, Fxw] = tireForce(obj,steerAngle,alphaD,kappa,Fz);
+%             Fy = -Fy;
             Rtire = [obj.l_f obj.t_f/2 0;   %tire 1
                      obj.l_f -obj.t_f/2 0;   %tire 2
                      -obj.l_r obj.t_f/2 0;   %tire 3
                      -obj.l_r -obj.t_f/2 0]; %tire 4
             forces.alpha = alphaR;
             %forces applied by tires to car
-            Ftires = [Fx Fy Fz Rtire];
+            Ftires = [-Fx -Fy Fz Rtire];
             forces.Ftires = Ftires;
             forces.Fxw = Fxw;
             forces.Fx = Fx;
@@ -230,35 +232,33 @@ classdef Car
             psiMoments = 0;
             %add up all applied moments, using given position vectors
             for i = 1:size(FapTotal,1)
-                psiMoments = psiMoments + cross(xF(i,:),FapTotal(i,:));
+                psiMoments = psiMoments + det([xF(i,1:2);FapTotal(i,1:2)]);
             end
-            Ftires = forces.Ftires;
+            Ftires = forces.Ftires(:,1:3);
+            Ftires(:,1:2) = -Ftires(:,1:2);
+            rTires = forces.Ftires(:,4:6);
             for i = 1:size(Ftires,1)
-                psiMoments = psiMoments + cross(Ftires(i,1:3),Ftires(i,4:6));
+                psiMoments = psiMoments + det([rTires(i,1:2);Ftires(i,1:2)]);
             end
             
-            %global->vehicle: rotate by psi
-            rotMat = [cos(psi) -sin(psi); 
-                      sin(psi) cos(psi)];
             allForces = FapTotal(:,1:2)+Ftires(:,1:2); 
             %forces in vehicle axes (e1, e2)
             sumA = sum(allForces,1)/obj.M;
             
             %equiv to multiply by inverse: vehicle->global
             %rotate car velocity components in e1,e2 to E1, E2
-            vGlobal = rotMat\[longVel; latVel];
-            
+%             vGlobal = rotMat\[longVel; latVel];
             xdot = zeros(14,1); 
             %long accel, lat accel. Vehicle coordinates
             xdot(3) = sumA(1)-psid*latVel;
-            xdot(4) = sumA(2)+psid*longVel; 
-            %X acceleration, Y acceleration. Global coordinates
-            xdot(5) = vGlobal(1); 
-            xdot(6) = vGlobal(2); 
+            xdot(4) = sumA(2)+psid*longVel;
+            %X velocity, Y velocity. Global coordinates
+            xdot(5) = longVel*cos(psi)-latVel*sin(psi); 
+            xdot(6) = longVel*sin(psi)+latVel*cos(psi); 
             
             %yaw velocity
             xdot(1) = psid;
-            xdot(2) = (1/obj.I_zz)*psiMoments(3);
+            xdot(2) = (1/obj.I_zz)*psiMoments;
             
             %tires: angular velocity, acceleration, 1-4
             xdot(7) = x(8);

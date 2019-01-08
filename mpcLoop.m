@@ -64,7 +64,7 @@ for i = 2:n
     if i == 1000
         disp('hold');
     end
-%     fprintf("%d\n",i);
+    fprintf("%d\n",i);
     angles = [thetaArr(i-1); thetadArr(i-1); 
               phiArr(i-1); phidArr(i-1); 
               zArr(i-1); zdArr(i-1)];
@@ -99,6 +99,7 @@ for i = 2:n
     %xdot at i-1
     %advance state
     xArr(:,i) = xArr(:,i-1) + dt*xdot; 
+    forces5.Ftires
     if xArr(3,i) <= 0
         disp(i)
         break

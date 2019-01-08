@@ -17,11 +17,11 @@ x1 = [0;
       v/r;
       0;
       v/r];
-sA = deg2rad(15);
+sA = deg2rad(0);
 u = [sA;0];
 dt = .001;
 car.Jm = 0; car.Jw = 1;
-steps = 20000;
+steps = 10000;
 forcesInit = struct();
 forcesInit.Ftires(:,3) = car.M*car.g*.25*ones(4,1);
 forcesInit.F = zeros(1,6);
@@ -35,7 +35,7 @@ for i = 1:steps
     forces = car.calcTireForces(x1,u,forces2);
 %     forces.Ftires(:,2) = -forces.Ftires(:,2);
     forces.Ftires
-    if mod(i,10000) == 0
+    if i == 2000
 %         plot(x1(5),x1(6),'o');
 %         hold on
         i
