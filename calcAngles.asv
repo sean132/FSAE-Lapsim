@@ -39,14 +39,7 @@ Fapplied = [Fapplied; tireForceXY];
 % force and moment balances take the applied forces (Fapplied) and the xy
 % components of the tire forces (since the z component is the shocks)
 if strcmp(mode,'yalmip')
-    theta = sdpvar(1,n); thetad = sdpvar(1,n); thetadd = sdpvar(1,n);
-    phi = sdpvar(1,n); phid = sdpvar(1,n); phidd = sdpvar(1,n);
-    zRC = sdpvar(1,n); zRCd = sdpvar(1,n); zRCdd = sdpvar(1,n);
-    z = sdpvar(4,n); zd = sdpvar(4,n);
-    FArr = sdpvar(4,n);
-    theta(1) = t0; thetad(1) = t0d;
-    phi(1) = p0; phid(1) = p0d;
-    zRC(1) = z0; zRCd(1) = z0d;
+    theta = sdpvar(1,n); thetad
 else
     %state arrays
     theta = [t0 zeros(1,n-1)]; thetad = [t0d zeros(1,n-1)]; thetadd = zeros(1,n);
@@ -87,7 +80,6 @@ toCarOrigin = @(t,p) [car.l_f 0 -hrc]*[t1F(t,p) t2F(t,p) t3F(t,p)];
 Fzs = 0; %4x1 array of shock forces
 %oscillation amplitude decreases with step size
 for i = 2:n+1
-    fprintf("calcAngles: %d\n",i);
     tc = theta(i-1); tcd = thetad(i-1);
     pc = phi(i-1); pcd = phid(i-1);
     r = [r1(tc,pc) r2(tc,pc) r3(tc,pc) r4(tc,pc)];
