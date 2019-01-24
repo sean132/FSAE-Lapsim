@@ -83,7 +83,8 @@ for i = 2:n+1
     rd = [r1d(tc,tcd,pc,pcd) r2d(tc,tcd,pc,pcd) r3d(tc,tcd,pc,pcd) r4d(tc,tcd,pc,pcd)];
     zd(:,i-1) = (rd(3,:)+zRCd(i-1)*ones(1,4))'; %take z velocities and store them
     
-    Fzs = -k*z(:,i-1) - c*zd(:,i-1); %forces from shocks, positive z: spring in tension
+    Fzs = -k*z(:,i-1) - c*zd(:,i-1); %forces from shocks, positive z: 
+    Fzs = max([Fzs zeros(4,1)],[],2); %tires only push the car up
     FArr(:,i-1) = Fzs;
     momentSum = 0;
     FzSum = 0;
