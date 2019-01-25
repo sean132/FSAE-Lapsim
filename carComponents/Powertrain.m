@@ -52,6 +52,16 @@ classdef Powertrain
             if long_vel >= switch_gear_velocities(end) 
                 current_gear = numel(switch_gear_velocities);
             end
+%             gearNum = 1;
+%             flag = 0;
+%             while gearNum < numel(switch_gear_velocities) && flag == 0
+%                 if long_vel <= switch_gear_velocities(gearNum)
+%                     flag = 1;
+%                 else
+%                     gearNum = gearNum+1;
+%                 end
+%             end
+%             current_gear = 1;
             engine_rpm = (omega_3+omega_4)/2*obj.drivetrain_reduction(current_gear)*30/pi; %rpm      
             %engine_rpm = (omega_3+omega_4)/2*obj.final_drive(current_gear)*30/pi; %rpm          
         end            

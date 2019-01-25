@@ -164,10 +164,12 @@ classdef Car
             longVel = x(3); %m/s
             % Powertrain
             omega = [x(8); x(10); x(12); x(14)];
-            [engineRPM,currentGear] = obj.powertrain.engine_rpm(omega(3),omega(4),longVel);
-            [T1,T2,T3,T4] = obj.powertrain.wheel_torques(engineRPM, omega(3), omega(4), throttle, currentGear);
-            T = [T1,T2,T3,T4];
-            Gr = obj.powertrain.drivetrain_reduction(currentGear);
+%             [engineRPM,currentGear] = obj.powertrain.engine_rpm(omega(3),omega(4),longVel);
+%             [T1,T2,T3,T4] = obj.powertrain.wheel_torques(engineRPM, omega(3), omega(4), throttle, currentGear);
+%             T = [T1,T2,T3,T4];
+            T = throttle*100*ones(1,4);
+%             Gr = obj.powertrain.drivetrain_reduction(currentGear);
+            Gr = 1;
             forces.T = T;
             %add: aero forces
         end
@@ -177,19 +179,24 @@ classdef Car
             longVel = x(3);
             latVel = x(4); %m/s
             Fz = forces.Ftires(:,3);
-            alphaR = zeros(4,1);
+%             alphaR = zeros(4,1);
+            
             % slip angles (small angle assumption)
-            if longVel > 0
-                alphaR(1) = steerAngle-atan((latVel+obj.l_f*yawRate)/abs(longVel-yawRate*obj.t_f/2));
-                alphaR(2) = steerAngle-atan((latVel+obj.l_f*yawRate)/abs(longVel+yawRate*obj.t_f/2));
-                alphaR(3) = -atan((latVel-obj.l_r*yawRate)/abs(longVel-yawRate*obj.t_r/2));
-                alphaR(4) = -atan((latVel-obj.l_r*yawRate)/abs(longVel+yawRate*obj.t_r/2));
+%             if longVel > 0
+%                 alphaR(1) = steerAngle-atan((latVel+obj.l_f*yawRate)/abs(longVel-yawRate*obj.t_f/2));
+%                 alphaR(2) = steerAngle-atan((latVel+obj.l_f*yawRate)/abs(longVel+yawRate*obj.t_f/2));
+%                 alphaR(3) = -atan((latVel-obj.l_r*yawRate)/abs(longVel-yawRate*obj.t_r/2));
+%                 alphaR(4) = -atan((latVel-obj.l_r*yawRate)/abs(longVel+yawRate*obj.t_r/2));
+                alphaR = [steerAngle-atan((latVel+obj.l_f*yawRate)/abs(longVel-yawRate*obj.t_f/2));
+                          steerAngle-atan((latVel+obj.l_f*yawRate)/abs(longVel+yawRate*obj.t_f/2));
+                            -atan((latVel-obj.l_r*yawRate)/abs(longVel-yawRate*obj.t_r/2));
+                            -atan((latVel-obj.l_r*yawRate)/abs(longVel+yawRate*obj.t_r/2))];
                 alphaR = -alphaR;
-                alphaD = rad2deg(alphaR);
-            else
-                alphaR = zeros(4,1);
-                alphaD = alphaR;
-            end
+                alphaD = alphaR/0.0174533; %rad2deg
+%             else
+%                 alphaR = zeros(4,1);
+%                 alphaD = alphaR;
+%             end
             k1 = (obj.R*x(8)/(x(3)-x(2)*obj.t_f/2))-1;
             k2 = (obj.R*x(10)/(x(3)+x(2)*obj.t_f/2))-1;
             k3 = (obj.R*x(12)/(x(3)-x(2)*obj.t_f/2))-1;

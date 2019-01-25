@@ -21,11 +21,19 @@ FzArr = zeros(4,n);
 
 xArr = zeros(14,n);
 % steer = zeros(1,n);
+<<<<<<< HEAD
 steerDeg = 10;
 steer = deg2rad(steerDeg)*[zeros(1,n/8) ones(1,7*n/8)];
 throttle = zeros(1,n);
 % throttle = [0*ones(1,n/2) 1*ones(1,n/4) -1*ones(1,n/4)];
 % throttle = [zeros(1,n/4) ones(1,2*n/4) -ones(1,n/4)];
+=======
+steerDeg = 5;
+steer = deg2rad(steerDeg)*[zeros(1,n/4) ones(1,3*n/4)];
+% throttle = zeros(1,n);
+% throttle = [0*ones(1,n/2) 1*ones(1,n/4) -1*ones(1,n/4)];
+throttle = [zeros(1,n/4) ones(1,2*n/4) -.5*ones(1,n/4)];
+>>>>>>> mpc
 uArr = [steer; throttle];
 
 x0 = zeros(14,1);
