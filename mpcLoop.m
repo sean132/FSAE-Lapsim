@@ -10,7 +10,7 @@ car.TSdyn = .0005;
 car.Jm = 0; car.Jw = 1;
 n = 8000;
 
-
+% beta 2 deg, steer 12 deg, roll 1.5 deg
 phiArr = zeros(1,n);
 phidArr = zeros(1,n);
 thetaArr = zeros(1,n);
