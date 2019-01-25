@@ -18,8 +18,8 @@ dt = car.TSmpc;
 g = 9.81;
 
 FapTotal = cell(n); %applied forces at each step
-% Fxyz = [0 10 0];
-% Rxyz = [0 0 car.R];
+Fxyz = [0 10 0];
+Rxyz = [0 0 0];
 Rxyz = [0 0 car.h_g];
 Fg = [0 0 -car.M*g];
 % Fg = [0 0 0];
@@ -31,7 +31,7 @@ for i = 1:n
     forces.F = Fconstant; %applied forces
     forces.Ftires = zeros(4,6); %forces applied by tires
     forces.Fxw = 0;         %x forces in front wheels tire csys
-    forces.Fx = 0;          %x forces, kept for compatibility
+    forces.Fx = 0;          %x forces, in car coordinate system, kept for compatibility
     FapTotal{i} = forces;
 end
 % FArr = zeros(4,3,n); %4 tires, 3 components, n steps
