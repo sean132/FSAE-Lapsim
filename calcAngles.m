@@ -1,4 +1,4 @@
-function [angles, forces, nextFz, debugInfo] = calcAngles(car,x,state, forces,mode)
+function [angles, forces, nextFz, debugInfo] = calcAngles(car,x,state, forces)
 %Fap: 4x3 matrix: 
    %rows: 4 tires
    %columns: 3 components
@@ -38,16 +38,6 @@ tireForceXY(:,3) = 0;
 Fapplied = [Fapplied; tireForceXY];
 % force and moment balances take the applied forces (Fapplied) and the xy
 % components of the tire forces (since the z component is the shocks)
-if strcmp(mode,'yalmip')
-    theta = sdpvar(1,n); thetad = sdpvar(1,n); thetadd = sdpvar(1,n);
-    phi = sdpvar(1,n); phid = sdpvar(1,n); phidd = sdpvar(1,n);
-    zRC = sdpvar(1,n); zRCd = sdpvar(1,n); zRCdd = sdpvar(1,n);
-    z = sdpvar(4,n); zd = sdpvar(4,n);
-    FArr = sdpvar(4,n);
-    theta(1) = t0; thetad(1) = t0d;
-    phi(1) = p0; phid(1) = p0d;
-    zRC(1) = z0; zRCd(1) = z0d;
-else
     %state arrays
     theta = [t0 zeros(1,n-1)]; thetad = [t0d zeros(1,n-1)]; thetadd = zeros(1,n);
     phi = [p0 zeros(1,n-1)]; phid = [p0d zeros(1,n-1)]; phidd = zeros(1,n);
@@ -56,7 +46,6 @@ else
     %non-state arrays (not state variables but nice to keep track of)
     z = zeros(4,n); zd = zeros(4,n); 
     FArr = zeros(4,n);
-end
 
 %basis vectors, 321 euler angle, psi = 0
 t1F = @(theta,phi) [cos(theta); 0; -sin(theta)];
