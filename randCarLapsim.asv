@@ -1,8 +1,8 @@
 % randCarLapsim2
 % This generates cars with random parameters (within predefined bounds) and
 % evaluates them. This can be used for sensitivities (tight bounds 
-% corresponding to parameter variation) or general design exploration
-% (large ranges over parameters and see what does well)
+% corresponding to or general design
+% exploration
 clear
 setup_paths
 tic

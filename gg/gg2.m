@@ -1,11 +1,11 @@
-function paramArr = gg2(car)
+function paramArr = gg2(car,numWorkers)
 minV = 5; maxV = car.max_vel-.5;
 longVgrid = 25;
 latAgrid = 30;
 
 longVelArr = linspace(minV,maxV,longVgrid);
 paramArr(longVgrid,latAgrid) = ParamSet();
-parfor c1 = 1:numel(longVelArr)
+parfor (c1 = 1:numel(longVelArr),numWorkers)
     longVel = longVelArr(c1);
     [maxLatx,maxLatLatAccel,maxLatLongAccel,maxLatx0] = max_lat_accel(longVel,car);
     latAccelArr = linspace(0,maxLatLatAccel,latAgrid);

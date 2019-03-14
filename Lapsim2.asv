@@ -5,17 +5,13 @@
 % in the dynamic events.
 % HOW TO USE:
 % 1) carConfig.m: define the car you want to test
-% 2) run this script
-% 3) results are in the comp object, which is stored in the corresponding
-% car object. Index into carCell to get the car you want, then open the
-% comp object.
+% 2) run this script. 
 clear
 setup_paths
 carCell = carConfig(); %generate all cars to sim over
 numCars = size(carCell,1);
 time = struct();time.prev = 0; time.curr = 0;
 tic
-% Set numWorkers to number of cores for better performance
 numWorkers = 0;
 if numWorkers ~= 0
     disp('The parallel toolbox takes a few minutes to start.')
