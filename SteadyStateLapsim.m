@@ -16,7 +16,7 @@ numCars = size(carCell,1);
 time = struct();time.prev = 0; time.curr = 0;
 tic
 % Set numWorkers to number of cores for better performance
-numWorkers = 0;
+numWorkers = 4;
 if numWorkers ~= 0
     disp('The parallel toolbox takes a few minutes to start.')
     disp('Set numWorkers to 0 for single-car runs')
@@ -35,6 +35,7 @@ for i = 1:numCars
     comp = Events2(car,accelCar); 
     comp.calcTimes();       %run events and calc points
     car.comp = comp;        %store in array
+    carCell{i,1} = car; %put updated car back into array. Matlab is pass by value, not pass by reference
     fprintf("car %d of %d - points calculated\n",[i numCars]);
     time.curr = floor(toc);
     fprintf("Stage Time: %d s; Total time elapsed: %d s\n",[time.curr-time.prev time.curr]);
