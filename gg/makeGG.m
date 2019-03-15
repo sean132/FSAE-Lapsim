@@ -23,4 +23,5 @@ car.ggPoints = ggpoints;
 car.longAccelLookup = longAccelLookup;
 car.longDecelLookup = longDecelLookup;
 % gg = Polyhedron('V',ggpoints);
+% gg.plot()
 % gg.minVRep();
