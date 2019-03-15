@@ -23,8 +23,8 @@ classdef Car
         
         Iyy
         Ixx   % needs to be about roll center
-        k     %spring rate (assumed same over all tires)
-        c     %damping coefficient
+        k     %spring rate (assumed same over all tires) N/m
+        c     %damping coefficient N*s/m
         TSmpc %mpc timestep
         TSdyn %dynamics timestep
         

@@ -6,23 +6,30 @@ catch
     error('run this from same directory as setup_paths. Should be one directory up');
 end
 car = testCar();
-car.k = 200*4.45*39.37;
+car.k = 200*4.45*39.37; 
 car.c = 700;
 car.Ixx = 60;
 car.Iyy = 82;
-car.TSmpc = .003;
+car.TSmpc = .003; %has to be multiple of TSdyn
 car.TSdyn = .0005;
 car.Jm = 0; car.Jw = 1;
-n = 8000;
+n = 8000; % number of steps
 
 % beta 2 deg, steer 12 deg, roll 1.5 deg
-steerDeg = 10;
+steerDeg = 0;
 steer = deg2rad(steerDeg)*[zeros(1,n/8) ones(1,7*n/8)];
-throttle = zeros(1,n);
-% throttle = [0*ones(1,n/2) 1*ones(1,n/4) -1*ones(1,n/4)];
+
+time = 0:car.TSmpc:car.TSmpc*(n-1);
+steer = deg2rad(steerDeg)*sin((2*pi)*time);
+steer(1:3000) = 0;
+
+%throttle = zeros(1,n);
+throttle = [0*ones(1,n/2) 1*ones(1,n/4) -1*ones(1,n/4)];
 % throttle = [zeros(1,n/4) ones(1,2*n/4) -ones(1,n/4)];
 uArr = [steer; throttle];
 data = fullDynamics(car,uArr,n);
+
+%% Plotting
 
 xArr = data.xArr; FzArr = data.FzArr; phiArr = data.phiArr;
 thetaArr = data.thetaArr; zArr = data.zArr;
