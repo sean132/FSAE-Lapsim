@@ -167,9 +167,7 @@ classdef Car
             [engineRPM,currentGear] = obj.powertrain.engine_rpm(omega(3),omega(4),longVel);
             [T1,T2,T3,T4] = obj.powertrain.wheel_torques(engineRPM, omega(3), omega(4), throttle, currentGear);
             T = [T1,T2,T3,T4];
-%             T = throttle*100*ones(1,4);
-%             Gr = obj.powertrain.drivetrain_reduction(currentGear);
-%             Gr = 1;
+            Gr = obj.powertrain.drivetrain_reduction(currentGear);
             forces.T = T;
             %add: aero forces
         end

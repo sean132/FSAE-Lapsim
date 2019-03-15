@@ -1,5 +1,10 @@
 clear; clc
-setup_paths
+%run this from the same directory as setup_paths
+try 
+    setup_paths
+catch
+    error('run this from same directory as setup_paths. Should be one directory up');
+end
 car = testCar();
 car.k = 200*4.45*39.37;
 car.c = 700;
