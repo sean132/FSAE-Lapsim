@@ -1,10 +1,12 @@
 clear; clc
-%run this from the same directory as setup_paths
+% run this from the same directory as setup_paths
 try 
     setup_paths
 catch
     error('run this from same directory as setup_paths. Should be one directory up');
 end
+
+% input car parameters
 car = testCar();
 car.k = 200*4.45*39.37; 
 car.c = 700;
@@ -13,21 +15,43 @@ car.Iyy = 82;
 car.TSmpc = .003; %has to be multiple of TSdyn
 car.TSdyn = .0005;
 car.Jm = 0; car.Jw = 1;
-n = 8000; % number of steps
+n = 8000; % number of timesteps
 
-% beta 2 deg, steer 12 deg, roll 1.5 deg
-steerDeg = 0;
+% steering/throttle input
+steerDeg = 3;
 steer = deg2rad(steerDeg)*[zeros(1,n/8) ones(1,7*n/8)];
-
 time = 0:car.TSmpc:car.TSmpc*(n-1);
 steer = deg2rad(steerDeg)*sin((2*pi)*time);
 steer(1:3000) = 0;
-
-%throttle = zeros(1,n);
-throttle = [0*ones(1,n/2) 1*ones(1,n/4) -1*ones(1,n/4)];
+throttle = zeros(1,n);
+%throttle = [0*ones(1,n/2) 1*ones(1,n/4) -1*ones(1,n/4)];
 % throttle = [zeros(1,n/4) ones(1,2*n/4) -ones(1,n/4)];
 uArr = [steer; throttle];
-data = fullDynamics(car,uArr,n);
+
+% initial vehicle states (vector of 14 values)
+% 1: yaw angle
+% 2: yaw rate
+% 3: longitudinal velocity
+% 4: lateral velocity
+% 5: x coordinate of CG
+% 6: y coordinate of CG
+% 7: front left wheel angular position
+% 8: front left wheel angular velocity
+% 9: front right wheel angular position
+% 10: front right wheel angular velocity
+% 11: rear left wheel angular position
+% 12: rear left wheel angular velocity
+% 13: rear right wheel angular position
+% 14: rear right wheel angular velocity
+x0 = zeros(14,1);
+v = 20; % initial velocity of 20 m/s
+x0(3) = 20; 
+x0([8 10 12 14]) = v/car.R; % wheel velocities
+
+% main dynamics solver 
+% outputs data: struct containing time histories of states, 
+% roll/pitch angles, tire normal loads, and wheel displacements
+data = fullDynamics(car,uArr,x0,n);
 
 %% Plotting
 

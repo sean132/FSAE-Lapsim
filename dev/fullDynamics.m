@@ -1,4 +1,4 @@
-function outputs = fullDynamics(car,uArr,n)
+function outputs = fullDynamics(car,uArr,x0,n)
 
 phiArr = zeros(1,n); % roll angle
 phidArr = zeros(1,n); % roll velocity
@@ -9,10 +9,6 @@ zdArr = zeros(1,n);
 FzArr = zeros(4,n); % vertical forces on tires
 
 xArr = zeros(14,n); % state array
-x0 = zeros(14,1);
-v = 20;
-x0(3) = v; %v0 = 10 m/s
-x0([8 10 12 14]) = v/car.R; %wheels at 10 m/s
 xArr(:,1) = x0;
 dt = car.TSmpc;
 g = 9.81;
