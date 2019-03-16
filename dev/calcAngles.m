@@ -1,14 +1,13 @@
-function [angles, forces, nextFz, debugInfo] = calcAngles(car,x,state, forces)
-%Fap: 4x3 matrix: 
-   %rows: 4 tires
-   %columns: 3 components
-hw = car.W_b;
-ht = car.t_f; %front/rear trackwidth assumed same
-hcg = car.l_r;
+function [angles, forces, nextFz, debugInfo] = calcAngles(car,x,state,forces)
+
+% renaming
+W_b = car.W_b;
+t_f = car.t_f; % front/rear trackwidth assumed same
+l_r = car.l_r;
 k = car.k;
 m = car.M;
 c = car.c;
-hrc = car.h_rc; %approx roll center height
+h_rc = car.h_rc; % approx roll center height
 TSmpc = car.TSmpc;
 TSdyn = car.TSdyn;
 Ixx = car.Ixx;
@@ -18,7 +17,6 @@ yawRate = x(2);
 longVel = x(3);
 latVel = x(4);
 
-
 t0 = state(1);
 t0d = state(2);
 p0 = state(3);
@@ -26,33 +24,36 @@ p0d = state(4);
 z0 = state(5);
 z0d = state(6);
 
-
 n = round(TSmpc/TSdyn,0);
 dt = TSdyn;
-%unpack Fap matrix and duplicate over timesteps
+
+% unpack Fap matrix and duplicate over timesteps
 % applied forces approximated as constant over dynamics
 Fapplied = forces.F;
 tireForceXY = forces.Ftires;
 tireForceXY(:,3) = 0;
-% tireForceXY = -tireForceXY;
 Fapplied = [Fapplied; tireForceXY];
+
 % force and moment balances take the applied forces (Fapplied) and the xy
 % components of the tire forces (since the z component is the shocks)
-    %state arrays
+
+%%%%% ^ this is not strictly accurate - should correct
+
+    % state arrays
     theta = [t0 zeros(1,n-1)]; thetad = [t0d zeros(1,n-1)]; thetadd = zeros(1,n);
     phi = [p0 zeros(1,n-1)]; phid = [p0d zeros(1,n-1)]; phidd = zeros(1,n);
     zRC = [z0 zeros(1,n-1)]; zRCd = [z0d zeros(1,n-1)]; zRCdd = zeros(1,n); %z of rotation point
 
-    %non-state arrays (not state variables but nice to keep track of)
-    z = zeros(4,n); zd = zeros(4,n); 
+    % non-state arrays (not state variables but nice to keep track of)
+    z = zeros(4,n); zd = zeros(4,n); % vertical displacement of tires
     FArr = zeros(4,n);
 
 % origin at roll center at cg
-%basis vectors, 321 euler angle, psi = 0
+% basis vectors, 321 euler angle, psi = 0
 t1F = @(theta,phi) [cos(theta); 0; -sin(theta)];
 t2F = @(theta,phi) [sin(theta)*sin(phi); cos(phi); cos(theta)*sin(phi)];
 t3F = @(theta,phi) [sin(theta)*cos(phi); -sin(phi); cos(phi)*cos(theta)];
-%basis vector derivatives, 321 euler angles, psi = 0
+% basis vector derivatives, 321 euler angles, psi = 0
 t1DF = @(t,td,p,pd) [-td*sin(t); 0; -td*cos(t)];
 t2DF = @(t,td,p,pd) [(td*cos(t)*sin(p) + pd*sin(t)*cos(p));
                      -pd*sin(p); 
@@ -60,58 +61,61 @@ t2DF = @(t,td,p,pd) [(td*cos(t)*sin(p) + pd*sin(t)*cos(p));
 t3DF = @(t,td,p,pd) [(td*cos(t)*cos(p)-pd*sin(t)*sin(p));
                      -pd*cos(p);
                      (-pd*sin(p)*cos(t)-td*cos(p)*sin(t))];
-%tire position vectors (3x1 vector)
-r1 = @(t,p) (hw-hcg)*t1F(t,p) + t2F(t,p)*ht/2 - hrc*t3F(t,p);
-r2 = @(t,p) (hw-hcg)*t1F(t,p) - t2F(t,p)*ht/2 - hrc*t3F(t,p);
-r3 = @(t,p) -hcg*t1F(t,p) + t2F(t,p)*ht/2 - hrc*t3F(t,p);
-r4 = @(t,p) -hcg*t1F(t,p) - t2F(t,p)*ht/2 - hrc*t3F(t,p);
-%tire position vector derivatives (3x1 vector)
-r1d = @(t,td,p,pd) (hw-hcg)*t1DF(t,td,p,pd) + t2DF(t,td,p,pd)*ht/2 - hrc*t3DF(t,td,p,pd);
-r2d = @(t,td,p,pd) (hw-hcg)*t1DF(t,td,p,pd) - t2DF(t,td,p,pd)*ht/2 - hrc*t3DF(t,td,p,pd);
-r3d = @(t,td,p,pd) -hcg*t1DF(t,td,p,pd) + t2DF(t,td,p,pd)*ht/2 - hrc*t3DF(t,td,p,pd);
-r4d = @(t,td,p,pd) -hcg*t1DF(t,td,p,pd) - t2DF(t,td,p,pd)*ht/2 - hrc*t3DF(t,td,p,pd);
+% tire position vectors (3x1 vector)
+r1 = @(t,p) (W_b-l_r)*t1F(t,p) + t2F(t,p)*t_f/2 - h_rc*t3F(t,p);
+r2 = @(t,p) (W_b-l_r)*t1F(t,p) - t2F(t,p)*t_f/2 - h_rc*t3F(t,p);
+r3 = @(t,p) -l_r*t1F(t,p) + t2F(t,p)*t_f/2 - h_rc*t3F(t,p);
+r4 = @(t,p) -l_r*t1F(t,p) - t2F(t,p)*t_f/2 - h_rc*t3F(t,p);
+% tire position vector derivatives (3x1 vector)
+r1d = @(t,td,p,pd) (W_b-l_r)*t1DF(t,td,p,pd) + t2DF(t,td,p,pd)*t_f/2 - h_rc*t3DF(t,td,p,pd);
+r2d = @(t,td,p,pd) (W_b-l_r)*t1DF(t,td,p,pd) - t2DF(t,td,p,pd)*t_f/2 - h_rc*t3DF(t,td,p,pd);
+r3d = @(t,td,p,pd) -l_r*t1DF(t,td,p,pd) + t2DF(t,td,p,pd)*t_f/2 - h_rc*t3DF(t,td,p,pd);
+r4d = @(t,td,p,pd) -l_r*t1DF(t,td,p,pd) - t2DF(t,td,p,pd)*t_f/2 - h_rc*t3DF(t,td,p,pd);
 
-%vector from rotation point to car origin
-%"rotation point" is point about which moments are taken
-toCarOrigin = @(t,p) [car.l_f 0 -hrc]*[t1F(t,p) t2F(t,p) t3F(t,p)];
-Fzs = 0; %4x1 array of shock forces
-%oscillation amplitude decreases with step size
+% vector from rotation point to car origin
+% "rotation point" is point about which moments are taken
+toCarOrigin = @(t,p) [car.l_f 0 -h_rc]*[t1F(t,p) t2F(t,p) t3F(t,p)];
+Fzs = 0; % 4x1 array of shock forces
+
+% oscillation amplitude decreases with step size
 for i = 2:n+1
-    fprintf("calcAngles: %d\n",i);
+    %fprintf("calcAngles: %d\n",i);
     tc = theta(i-1); tcd = thetad(i-1);
     pc = phi(i-1); pcd = phid(i-1);
     r = [r1(tc,pc) r2(tc,pc) r3(tc,pc) r4(tc,pc)];
-    z(:,i-1) = (r(3,:)+zRC(i-1)*ones(1,4))'; %take z components and store them
+    z(:,i-1) = (r(3,:)+zRC(i-1)*ones(1,4))'; % take z components and store them
     rd = [r1d(tc,tcd,pc,pcd) r2d(tc,tcd,pc,pcd) r3d(tc,tcd,pc,pcd) r4d(tc,tcd,pc,pcd)];
-    zd(:,i-1) = (rd(3,:)+zRCd(i-1)*ones(1,4))'; %take z velocities and store them
+    zd(:,i-1) = (rd(3,:)+zRCd(i-1)*ones(1,4))'; % take z velocities and store them
     
-    Fzs = -k*z(:,i-1) - c*zd(:,i-1); %forces from shocks, positive z: 
-    Fzs = max([Fzs zeros(4,1)],[],2); %tires only push the car up
+    Fzs = -k*z(:,i-1) - c*zd(:,i-1); % forces from shocks, positive z: 
+    Fzs = max([Fzs zeros(4,1)],[],2); % tires only push the car up
     FArr(:,i-1) = Fzs;
+    
     momentSum = 0;
     FzSum = 0;
-    for j = 1:4 %moments for all 4 tires; M = rxF for CCW convention
+    for j = 1:4 % moments for all 4 tires; M = rxF for CCW convention
         Fj = [0; 0; Fzs(j)]; 
         momentSum = momentSum + cross(r(:,j),Fj);
         FzSum = FzSum+Fzs(j);
     end
-    for j = 1:size(Fapplied,1) %applied forces
+    for j = 1:size(Fapplied,1) % applied forces
         Fj = [Fapplied(j,1); Fapplied(j,2); Fapplied(j,3)];
-        rVec = Fapplied(j,4:6)*[t1F(tcd,pcd) t2F(tcd,pcd) t3F(tcd,pcd)]; %apply car basis vectors
-        rVec = rVec + toCarOrigin(tcd,pcd); %use car origin and moment point -> r vector
+        rVec = Fapplied(j,4:6)*[t1F(tcd,pcd) t2F(tcd,pcd) t3F(tcd,pcd)]; % apply car basis vectors
+        rVec = rVec + toCarOrigin(tcd,pcd); % use car origin and moment point -> r vector
         momentSum = momentSum + cross(rVec',Fj);
         FzSum = FzSum + Fapplied(j,3);
     end
     
-    latAccelcg = -car.M*yawRate*longVel*(car.h_g-hrc);
-    longAccelcg = car.M*yawRate*latVel*(car.h_g-hrc);
-%     latAccelcg = 0;
-%     longAccelcg = 0;
+    % roll moment from inertial acceleration
+    latAccelcg = -car.M*yawRate*longVel*(car.h_g-h_rc);
+    longAccelcg = car.M*yawRate*latVel*(car.h_g-h_rc);
+    %%%%% ^ correct above for pitch center
+
+    % accelerations
     phidd(i-1) = (1/Ixx)*(latAccelcg+momentSum(1) + phid(i-1)*thetad(i-1)*sin(theta(i-1)))/cos(theta(i-1));
     thetadd(i-1) = (1/Iyy)*(longAccelcg+momentSum(2));
     zRCdd(i-1) = (FzSum/m);
-    %second phidd eqn should be redundant since psi set to zero
-%     phidd2(i-1) = -(momentSum(3) - phid(i-1)*thetad(i-1)*cos(theta(i-1)));
+    
     if i <= n
         %state evolution for angles
         phid(i) = phid(i-1) + dt*phidd(i-1);
@@ -122,6 +126,7 @@ for i = 2:n+1
         zRC(i) = zRC(i-1) + dt*zRCd(i-1);
     end
 end
+
 nextFz = FArr(:,n);
 t = (1:n).*dt;
 angles = struct();

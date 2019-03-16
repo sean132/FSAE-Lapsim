@@ -29,20 +29,13 @@ throttle = zeros(1,n);
 uArr = [steer; throttle];
 
 % initial vehicle states (vector of 14 values)
-% 1: yaw angle
-% 2: yaw rate
-% 3: longitudinal velocity
-% 4: lateral velocity
-% 5: x coordinate of CG
-% 6: y coordinate of CG
-% 7: front left wheel angular position
-% 8: front left wheel angular velocity
-% 9: front right wheel angular position
-% 10: front right wheel angular velocity
-% 11: rear left wheel angular position
-% 12: rear left wheel angular velocity
-% 13: rear right wheel angular position
-% 14: rear right wheel angular velocity
+% 1: yaw angle 2: yaw rate 3: long velocity 4: lat velocity
+% 5: x position of cg 6: y position of cg
+% 7:  FL angular position 8:  FL angular velocity
+% 9:  FR angular position 10: FR angular velocity
+% 11: RL angular position 12: RL angular velocity
+% 13: RR angular position 14: RR angular velocity
+
 x0 = zeros(14,1);
 v = 20; % initial velocity of 20 m/s
 x0(3) = 20; 

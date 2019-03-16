@@ -174,14 +174,14 @@ classdef Car
             Gr = obj.powertrain.drivetrain_reduction(currentGear);
             forces.T = T;
             
-            % aero
-            F_lift = [0 0 -obj.aero.lift(longVel)];
-            R_lift = [-obj.aero.D_f*obj.W_b 0 obj.h_g];
-            F_drag = [0 0 -obj.aero.drag(longVel)];
-            R_drag = [-obj.l_f 0 obj.h_g]; 
-            lift = [F_lift R_lift];
-            drag = [F_drag R_drag];
-            forces.F = [forces.F; lift; drag];
+%             % aero
+%             F_lift = [0 0 -obj.aero.lift(longVel)];
+%             R_lift = [-obj.aero.D_f*obj.W_b 0 obj.h_g];
+%             F_drag = [0 0 -obj.aero.drag(longVel)];
+%             R_drag = [-obj.l_f 0 obj.h_g]; 
+%             lift = [F_lift R_lift];
+%             drag = [F_drag R_drag];
+%             forces.F = [forces.F; lift; drag];
         end
         
         function forces = calcTireForces(obj,x,u,forces)
@@ -220,7 +220,7 @@ classdef Car
             forces.Fx = Fx;
         end
         
-        function [xdot, forces] = dynamics(obj,x,forces,Gr)
+        function [xdot, forces] = dynamics(obj,x,u,forces,Gr)
             % initial vehicle states (vector of 14 values)
             % 1: yaw angle 2: yaw rate 3: long velocity 4: lat velocity
             % 5: x position of cg 6: y position of cg
@@ -252,9 +252,8 @@ classdef Car
             for i = 1:size(Ftires,1)
                 psiMoments = psiMoments + det([rTires(i,1:2);Ftires(i,1:2)]);
             end
-            
-            %total matrix of forces in vehicle axes (e1, e2)
-            allForces = [FapTotal(:,1:2); Ftires(:,1:2)]; 
+            %forces in vehicle axes (e1, e2)
+            allForces = FapTotal(:,1:2)+Ftires(:,1:2); 
             
             % total acceleration vector
             sumA = sum(allForces,1)/obj.M;
@@ -435,7 +434,6 @@ classdef Car
             out = obj.powertrain.redline*pi/30*obj.R/...
                 obj.powertrain.drivetrain_reduction(numel(obj.powertrain.gears))-0.001;
         end
-        
         function printState(obj,x,xdot)
             fprintf("1. yaw angle: %0.2f\n",x(1));
             fprintf("2. yaw rate : %0.2f\n",x(2));
