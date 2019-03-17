@@ -41,14 +41,14 @@ Fapplied = [Fapplied; tireForceXY];
 
 %%%%% ^ this is not strictly accurate - should correct
 
-    % state arrays
-    theta = [t0 zeros(1,n-1)]; thetad = [t0d zeros(1,n-1)]; thetadd = zeros(1,n);
-    phi = [p0 zeros(1,n-1)]; phid = [p0d zeros(1,n-1)]; phidd = zeros(1,n);
-    zRC = [z0 zeros(1,n-1)]; zRCd = [z0d zeros(1,n-1)]; zRCdd = zeros(1,n); %z of rotation point
+% state arrays
+theta = [t0 zeros(1,n-1)]; thetad = [t0d zeros(1,n-1)]; thetadd = zeros(1,n);
+phi = [p0 zeros(1,n-1)]; phid = [p0d zeros(1,n-1)]; phidd = zeros(1,n);
+zRC = [z0 zeros(1,n-1)]; zRCd = [z0d zeros(1,n-1)]; zRCdd = zeros(1,n); %z of rotation point
 
-    % non-state arrays (not state variables but nice to keep track of)
-    z = zeros(4,n); zd = zeros(4,n); % vertical displacement of tires
-    FArr = zeros(4,n);
+% non-state arrays (not state variables but nice to keep track of)
+z = zeros(4,n); zd = zeros(4,n); % vertical displacement of tires
+FArr = zeros(4,n);
 
 % origin at roll center at cg
 % basis vectors, 321 euler angle, psi = 0
@@ -89,7 +89,10 @@ for i = 2:n+1
     rd = [r1d(tc,tcd,pc,pcd) r2d(tc,tcd,pc,pcd) r3d(tc,tcd,pc,pcd) r4d(tc,tcd,pc,pcd)];
     zd(:,i-1) = (rd(3,:)+zRCd(i-1)*ones(1,4))'; % take z velocities and store them
     
+    static_spring_displacement = m*9.81/2/k*[l_r/W_b; l_r/W_b; 1-l_r/W_b;1-l_r/W_b];
+    z(:,i-1) = z(:,i-1) - static_spring_displacement;
     Fzs = -k*z(:,i-1) - c*zd(:,i-1); % forces from shocks, positive z: 
+    %Fzs
     
     % ARB moment contribution
     Fzs_1 = -1/t_f*k_rf*pc;

@@ -179,7 +179,7 @@ classdef Car
             % aero
             F_lift = [0 0 -obj.aero.lift(longVel)];
             R_lift = [-obj.aero.D_f*obj.W_b 0 obj.h_g];
-            F_drag = [0 0 -obj.aero.drag(longVel)];
+            F_drag = [-obj.aero.drag(longVel) 0 0];
             R_drag = [-obj.l_f 0 obj.h_g]; 
             lift = [F_lift R_lift];
             drag = [F_drag R_drag];

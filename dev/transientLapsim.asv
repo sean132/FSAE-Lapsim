@@ -26,7 +26,6 @@ time = 0:car.TSmpc:car.TSmpc*(n-1);
 %steer = deg2rad(steerDeg)*sin((2*pi)*time);
 %steer(1:3000) = 0;
 throttle = zeros(1,n);
-throttle = 0.1*ones(1,n);
 %throttle = [0*ones(1,n/2) 1*ones(1,n/4) -1*ones(1,n/4)];
 % throttle = [zeros(1,n/4) ones(1,2*n/4) -ones(1,n/4)];
 uArr = [steer; throttle];
@@ -60,12 +59,10 @@ thetaArr = data.thetaArr; zArr = data.zArr;
 % 9:  FR angular position 10: FR angular velocity
 % 11: RL angular position 12: RL angular velocity
 % 13: RR angular position 14: RR angular velocity
-
-time = 0:car.TSmpc:car.TSmpc*(n-1);
-yaw_angle = xArr(1,:);
-yaw_rate = xArr(2,:);
-long_vel = xArr(3,:);
-lat_vel = xArr(4,:);
+% xArr(1,:) = yaw_angle;
+% xArr(2,:) = yaw_rate;
+% xArr(3,:) = long_vel;
+% xArr(4,:) = lat_vel;
 
 ic = 1000;
 figure(1);clf
@@ -77,38 +74,38 @@ xlabel('X Position');
 ylabel('Y Position');
 
 figure(2);clf
-plot(time,sqrt(long_vel.^2 + lat_vel.^2));
+plot(sqrt(xArr(3,:).^2 + xArr(4,:).^2));
 title('speed');grid
 
 figure(3);clf
-plot(time,rad2deg(phiArr)); hold on
-plot(time,rad2deg(thetaArr));grid
+plot(rad2deg(phiArr)); hold on
+plot(rad2deg(thetaArr));grid
 title('phi and theta, deg');
 legend('phi','theta','Location','best');
 
 figure(4);clf
-plot(time,rad2deg(steer)) %deg
-title('steering angle');grid
+plot(rad2deg(xArr(1,:)));grid
+legend('psi','Location','best');
+grid
 
 figure(5);clf
+plot(rad2deg(steer)) %deg
+title('steering angle');grid
+
+figure(6);clf
 for i =1:4
-    plot(time,FzArr(i,:));hold on
+    plot(FzArr(i,:));hold on
 end
 grid
 title('Fz'); legend('1','2','3','4');
-
-figure(6);clf
-plot(time,zArr);
-title('Roll Center Height');
-
+figure(5);clf
+plot(zArr);
+title('CG Height');
+% plot(xArr(4,:));grid;hold on
+% title('lat velocity');
 disp('done');
 fprintf("phi: %0.2f\n",rad2deg(phiArr(end-10)));
 fprintf("theta: %0.2f\n",rad2deg(thetaArr(end-10)));
 
-figure(7); clf
-plot(time,long_vel.*yaw_rate)
-title('Lateral Acceleration')
-
-figure(8); clf
-plot(time,yaw_rate)
-title('Yaw Rate')
+% figure(7); clf
+% plot(time,
