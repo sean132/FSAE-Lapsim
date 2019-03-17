@@ -25,6 +25,8 @@ classdef Car
         Ixx   % needs to be about roll center
         k     %spring rate (assumed same over all tires) N/m
         c     %damping coefficient N*s/m
+        k_rf  % front arb roll stiffness (Nm/rad)
+        k_rr  % rear arb roll stiffness (Nm/rad)
         TSmpc %mpc timestep
         TSdyn %dynamics timestep
         

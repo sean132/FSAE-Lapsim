@@ -1,4 +1,4 @@
-function [angles, forces, nextFz, debugInfo] = calcAngles(car,x,state,forces)
+function [angles, forces, nextFz] = calcAngles(car,x,state,forces)
 
 % renaming
 W_b = car.W_b;
@@ -7,6 +7,8 @@ l_r = car.l_r;
 k = car.k;
 m = car.M;
 c = car.c;
+k_rf = car.k_rf;
+k_rr = car.k_rr;
 h_rc = car.h_rc; % approx roll center height
 TSmpc = car.TSmpc;
 TSdyn = car.TSdyn;
@@ -88,6 +90,15 @@ for i = 2:n+1
     zd(:,i-1) = (rd(3,:)+zRCd(i-1)*ones(1,4))'; % take z velocities and store them
     
     Fzs = -k*z(:,i-1) - c*zd(:,i-1); % forces from shocks, positive z: 
+    
+    % ARB moment contribution
+    Fzs_1 = -1/t_f*k_rf*pc;
+    Fzs_2 = 1/t_f*k_rf*pc;
+    Fzs_3 = -1/t_f*k_rr*pc;
+    Fzs_4 = 1/t_f*k_rr*pc;    
+    Fzs_ARB = [Fzs_1; Fzs_2; Fzs_3; Fzs_4];
+    Fzs = Fzs+Fzs_ARB;
+                   
     Fzs = max([Fzs zeros(4,1)],[],2); % tires only push the car up
     FArr(:,i-1) = Fzs;
     

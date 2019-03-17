@@ -1,4 +1,4 @@
-function [angles, forces, nextFz, debugInfo] = calcAngles(car,x,state,forces)
+function [angles, forces, nextFz] = calcAngles(car,x,state,forces)
 
 % renaming
 W_b = car.W_b;
@@ -88,6 +88,26 @@ for i = 2:n+1
     zd(:,i-1) = (rd(3,:)+zRCd(i-1)*ones(1,4))'; % take z velocities and store them
     
     Fzs = -k*z(:,i-1) - c*zd(:,i-1); % forces from shocks, positive z: 
+    
+    k_rf = 0; % Nm/rad
+    k_rr = 18000; % Nm/rad
+    Fzs_1 = -1/t_f*k_rf*pc-1/t_f^2*k_rf*z(1,i-1)+1/t_f^2*k_rf*z(2,i-1);
+        
+    Fzs_2 = 1/t_f*k_rf*pc-1/t_f^2*k_rf*z(2,i-1)+1/t_f^2*k_rf*z(1,i-1);
+    Fzs_3 = -1/t_f*k_rr*pc-1/t_f^2*k_rr*z(3,i-1)+1/t_f^2*k_rr*z(4,i-1);
+    Fzs_4 = 1/t_f*k_rr*pc-1/t_f^2*k_rr*z(4,i-1)+1/t_f^2*k_rr*z(3,i-1);
+    
+        Fzs_3 = -1/t_f*k_rr*pc-1/t_f^2*k_rr*r(3,3)+1/t_f^2*k_rr*r(3,4);
+
+    
+    %z(:,i-1)
+    
+    Fzs_ARB = [Fzs_1; Fzs_2; Fzs_3; Fzs_4];
+%    Fzs_ARB
+%     pc
+%     z(:,i-1)
+    Fzs = Fzs+Fzs_ARB;
+                   
     Fzs = max([Fzs zeros(4,1)],[],2); % tires only push the car up
     FArr(:,i-1) = Fzs;
     
@@ -106,14 +126,16 @@ for i = 2:n+1
         FzSum = FzSum + Fapplied(j,3);
     end
     
+    % roll moment from inertial acceleration
     latAccelcg = -car.M*yawRate*longVel*(car.h_g-h_rc);
     longAccelcg = car.M*yawRate*latVel*(car.h_g-h_rc);
+    %%%%% ^ correct above for pitch center
 
+    % accelerations
     phidd(i-1) = (1/Ixx)*(latAccelcg+momentSum(1) + phid(i-1)*thetad(i-1)*sin(theta(i-1)))/cos(theta(i-1));
     thetadd(i-1) = (1/Iyy)*(longAccelcg+momentSum(2));
     zRCdd(i-1) = (FzSum/m);
-    %second phidd eqn should be redundant since psi set to zero
-%     phidd2(i-1) = -(momentSum(3) - phid(i-1)*thetad(i-1)*cos(theta(i-1)));
+    
     if i <= n
         %state evolution for angles
         phid(i) = phid(i-1) + dt*phidd(i-1);
@@ -124,6 +146,7 @@ for i = 2:n+1
         zRC(i) = zRC(i-1) + dt*zRCd(i-1);
     end
 end
+
 nextFz = FArr(:,n);
 t = (1:n).*dt;
 angles = struct();

@@ -8,10 +8,12 @@ end
 
 % input car parameters
 car = testCar();
-car.k = 200*4.45*39.37; 
-car.c = 700;
+car.k = 200*4.45*39.37; % N/m
+car.c = 1000; % N*s/m
 car.Ixx = 60;
 car.Iyy = 82;
+car.k_rf = 18000; % Nm/rad
+car.k_rr = 18000; % Nm/rad
 car.TSmpc = .003; %has to be multiple of TSdyn
 car.TSdyn = .0005;
 car.Jm = 0; car.Jw = 1;
@@ -21,8 +23,8 @@ n = 8000; % number of timesteps
 steerDeg = 3;
 steer = deg2rad(steerDeg)*[zeros(1,n/8) ones(1,7*n/8)];
 time = 0:car.TSmpc:car.TSmpc*(n-1);
-steer = deg2rad(steerDeg)*sin((2*pi)*time);
-steer(1:3000) = 0;
+%steer = deg2rad(steerDeg)*sin((2*pi)*time);
+%steer(1:3000) = 0;
 throttle = zeros(1,n);
 %throttle = [0*ones(1,n/2) 1*ones(1,n/4) -1*ones(1,n/4)];
 % throttle = [zeros(1,n/4) ones(1,2*n/4) -ones(1,n/4)];
