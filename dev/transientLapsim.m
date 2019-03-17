@@ -22,7 +22,7 @@ n = 8000; % number of timesteps
 % steering/throttle input
 steerDeg = 3;
 steer = deg2rad(steerDeg)*[zeros(1,n/8) ones(1,7*n/8)];
-time = 0:car.TSmpc:car.TSmpc*(n-1);
+%time = 0:car.TSmpc:car.TSmpc*(n-1);
 %steer = deg2rad(steerDeg)*sin((2*pi)*time);
 %steer(1:3000) = 0;
 throttle = zeros(1,n);
@@ -69,9 +69,9 @@ lat_vel = xArr(4,:);
 
 ic = 1000;
 figure(1);clf
-plot(xArr(5,:),xArr(6,:));
+plot(xArr(5,:),-xArr(6,:));
 hold on
-plot(xArr(5,ic),xArr(6,ic),'o');
+plot(xArr(5,ic),-xArr(6,ic),'o');
 title('XY Pos');grid
 xlabel('X Position');
 ylabel('Y Position');
